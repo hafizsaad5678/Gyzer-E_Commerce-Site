@@ -49,9 +49,11 @@ export const Route = createFileRoute("/shop")({
       { property: "og:title", content: "Shop Geysers — Asif Brothers" },
     ],
   }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(shopOpts());
-    context.queryClient.ensureQueryData(catsOpts);
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(shopOpts()),
+      context.queryClient.ensureQueryData(catsOpts),
+    ]);
   },
   component: Shop,
 });

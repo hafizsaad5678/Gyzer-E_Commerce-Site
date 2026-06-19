@@ -47,9 +47,11 @@ export const Route = createFileRoute("/")({
       { property: "og:description", content: "Shop electric, gas, instant and solar geysers from Asif Brothers." },
     ],
   }),
-  loader: ({ context }) => {
-    context.queryClient.ensureQueryData(featuredOpts);
-    context.queryClient.ensureQueryData(categoriesOpts);
+  loader: async ({ context }) => {
+    await Promise.all([
+      context.queryClient.ensureQueryData(featuredOpts),
+      context.queryClient.ensureQueryData(categoriesOpts),
+    ]);
   },
   component: Home,
 });
@@ -98,7 +100,7 @@ function Home() {
           </div>
           <div className="relative">
             <div className="absolute -inset-8 thermal-gradient blur-3xl opacity-20 rounded-full" />
-            <img src={hero} alt="Premium Asif Brothers geyser" width={1600} height={1280} className="relative rounded-2xl shadow-[var(--shadow-elevated)] object-cover aspect-[4/3]" />
+            <img src={hero} alt="Premium Asif Brothers geyser" fetchPriority="high" width={1600} height={1280} className="relative rounded-2xl shadow-[var(--shadow-elevated)] object-cover aspect-[4/3]" />
           </div>
         </div>
       </section>
