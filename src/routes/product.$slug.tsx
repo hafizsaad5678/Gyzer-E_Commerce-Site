@@ -122,6 +122,11 @@ function ProductPage() {
               <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">{p.brand} · {(p as any).categories?.name}</div>
               <h1 className="text-display text-4xl md:text-5xl">{p.name}</h1>
               <p className="mt-3 text-muted-foreground">{p.short_description}</p>
+              {p.stock > 0 && p.stock < 5 && (
+                <div className="inline-block mt-3 px-3 py-1 rounded-md bg-destructive/10 text-destructive text-sm font-medium">
+                  Low Stock Alert: Only {p.stock} remaining
+                </div>
+              )}
             </div>
 
             {reviews.length > 0 && (
@@ -141,7 +146,7 @@ function ProductPage() {
               <div className="inline-flex items-center rounded-md border border-input">
                 <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 text-muted-foreground hover:text-foreground">−</button>
                 <span className="px-4 py-2 text-sm font-medium">{qty}</span>
-                <button onClick={() => setQty(qty + 1)} className="px-3 py-2 text-muted-foreground hover:text-foreground">+</button>
+                <button onClick={() => setQty(Math.min(p.stock, qty + 1))} className="px-3 py-2 text-muted-foreground hover:text-foreground">+</button>
               </div>
               <button disabled={adding || p.stock <= 0} onClick={addToCart} className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
                 <ShoppingCart className="h-4 w-4" /> {p.stock <= 0 ? "Out of stock" : adding ? "Adding..." : "Add to cart"}

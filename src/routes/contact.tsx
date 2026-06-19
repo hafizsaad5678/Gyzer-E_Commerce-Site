@@ -75,7 +75,7 @@ function Contact() {
             <div className="surface-card overflow-hidden">
               <iframe
                 title="Asif Brothers location"
-                src="https://www.google.com/maps?q=Lahore+Pakistan&output=embed"
+                src="https://www.google.com/maps?q=Gujranwala+Pakistan&output=embed"
                 className="w-full h-64 border-0"
                 loading="lazy"
               />

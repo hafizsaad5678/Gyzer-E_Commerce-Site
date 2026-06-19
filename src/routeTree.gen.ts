@@ -25,6 +25,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as OrderConfirmationIdRouteImport } from './routes/order-confirmation.$id'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
@@ -120,6 +121,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CategoriesIndexRoute = CategoriesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CategoriesRoute,
 } as any)
 const ProductSlugRoute = ProductSlugRouteImport.update({
   id: '/product/$slug',
@@ -233,6 +239,7 @@ export interface FileRoutesByFullPath {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/account/addresses': typeof AuthenticatedAccountAddressesRoute
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/account/password': typeof AuthenticatedAccountPasswordRoute
@@ -250,7 +257,6 @@ export interface FileRoutesByTo {
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
-  '/categories': typeof CategoriesRouteWithChildren
   '/checkout': typeof CheckoutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -264,6 +270,7 @@ export interface FileRoutesByTo {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/categories': typeof CategoriesIndexRoute
   '/account/addresses': typeof AuthenticatedAccountAddressesRoute
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/account/password': typeof AuthenticatedAccountPasswordRoute
@@ -299,6 +306,7 @@ export interface FileRoutesById {
   '/categories/$slug': typeof CategoriesSlugRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/categories/': typeof CategoriesIndexRoute
   '/_authenticated/account/addresses': typeof AuthenticatedAccountAddressesRoute
   '/_authenticated/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/_authenticated/account/password': typeof AuthenticatedAccountPasswordRoute
@@ -334,6 +342,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/order-confirmation/$id'
     | '/product/$slug'
+    | '/categories/'
     | '/account/addresses'
     | '/account/orders'
     | '/account/password'
@@ -351,7 +360,6 @@ export interface FileRouteTypes {
     | '/about'
     | '/auth'
     | '/cart'
-    | '/categories'
     | '/checkout'
     | '/contact'
     | '/faq'
@@ -365,6 +373,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/order-confirmation/$id'
     | '/product/$slug'
+    | '/categories'
     | '/account/addresses'
     | '/account/orders'
     | '/account/password'
@@ -399,6 +408,7 @@ export interface FileRouteTypes {
     | '/categories/$slug'
     | '/order-confirmation/$id'
     | '/product/$slug'
+    | '/categories/'
     | '/_authenticated/account/addresses'
     | '/_authenticated/account/orders'
     | '/_authenticated/account/password'
@@ -546,6 +556,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/categories/': {
+      id: '/categories/'
+      path: '/'
+      fullPath: '/categories/'
+      preLoaderRoute: typeof CategoriesIndexRouteImport
+      parentRoute: typeof CategoriesRoute
     }
     '/product/$slug': {
       id: '/product/$slug'
@@ -718,10 +735,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 
 interface CategoriesRouteChildren {
   CategoriesSlugRoute: typeof CategoriesSlugRoute
+  CategoriesIndexRoute: typeof CategoriesIndexRoute
 }
 
 const CategoriesRouteChildren: CategoriesRouteChildren = {
   CategoriesSlugRoute: CategoriesSlugRoute,
+  CategoriesIndexRoute: CategoriesIndexRoute,
 }
 
 const CategoriesRouteWithChildren = CategoriesRoute._addFileChildren(

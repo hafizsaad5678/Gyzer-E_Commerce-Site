@@ -1,6 +1,7 @@
 import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
-import { User, Package, MapPin, Heart, Lock, LogOut } from "lucide-react";
+import { User, Package, MapPin, Heart, Lock, LogOut, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -18,11 +19,23 @@ const nav = [
 
 function AccountLayout() {
   const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      const { data } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id).eq("role", "admin").maybeSingle();
+      setIsAdmin(!!data);
+    })();
+  }, []);
+
   async function signOut() {
     await supabase.auth.signOut();
     toast.success("Signed out");
     navigate({ to: "/" });
   }
+
   return (
     <SiteLayout>
       <section className="container-page py-12 md:py-16">
@@ -36,6 +49,15 @@ function AccountLayout() {
                   <n.icon className="h-4 w-4" /> {n.label}
                 </Link>
               ))}
+              
+              {isAdmin && (
+                <div className="pt-2 mt-2 border-t border-border">
+                  <Link to="/admin" className="flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-md text-copper hover:bg-copper/10 font-medium">
+                    <LayoutDashboard className="h-4 w-4" /> Admin Dashboard
+                  </Link>
+                </div>
+              )}
+              
               <button onClick={signOut} className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm rounded-md text-muted-foreground hover:bg-destructive/10 hover:text-destructive">
                 <LogOut className="h-4 w-4" /> Sign out
               </button>

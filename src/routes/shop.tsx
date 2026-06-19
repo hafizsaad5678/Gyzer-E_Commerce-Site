@@ -1,6 +1,6 @@
 import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { z } from "zod";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProductCard, type ProductCardData } from "@/components/site/ProductCard";
@@ -64,6 +64,12 @@ function Shop() {
   const [cat, setCat] = useState(search.category ?? "");
   const [sort, setSort] = useState(search.sort ?? "new");
   const [maxPrice, setMaxPrice] = useState<number>(250000);
+
+  useEffect(() => {
+    setQ(search.q ?? "");
+    setCat(search.category ?? "");
+    setSort(search.sort ?? "new");
+  }, [search.q, search.category, search.sort]);
 
   const filtered = useMemo(() => {
     let list = products as any[];

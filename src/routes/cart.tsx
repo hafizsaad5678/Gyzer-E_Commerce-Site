@@ -41,9 +41,16 @@ function Cart() {
   }
   useEffect(() => { load(); }, []);
 
-  async function updateQty(id: string, q: number) {
+  async function updateQty(id: string, q: number, max: number) {
     if (q < 1) return;
-    await supabase.from("cart_items").update({ quantity: q }).eq("id", id);
+    let newQty = q;
+    if (q > max) {
+      toast.error(`Only ${max} available in stock`);
+      newQty = max;
+    }
+    if (newQty === items.find(i => i.id === id)?.quantity) return; // No change needed
+    
+    await supabase.from("cart_items").update({ quantity: newQty }).eq("id", id);
     load();
   }
   async function remove(id: string) {
@@ -103,11 +110,14 @@ function Cart() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{i.product?.brand}</div>
                       <Link to="/product/$slug" params={{ slug: i.product.slug }} className="text-display text-lg hover:text-copper">{i.product?.name}</Link>
+                      <div className={`text-[11px] font-medium mt-0.5 ${i.product.stock > 0 && i.product.stock < 5 ? 'text-destructive' : 'text-success'}`}>
+                        {i.product.stock > 0 ? `${i.product.stock} in stock` : "Out of stock"}
+                      </div>
                       <div className="mt-2 flex items-center gap-3">
                         <div className="inline-flex items-center rounded-md border border-input">
-                          <button onClick={() => updateQty(i.id, i.quantity - 1)} className="px-2.5 py-1 text-muted-foreground">−</button>
+                          <button onClick={() => updateQty(i.id, i.quantity - 1, i.product.stock)} className="px-2.5 py-1 text-muted-foreground">−</button>
                           <span className="px-3 py-1 text-sm">{i.quantity}</span>
-                          <button onClick={() => updateQty(i.id, i.quantity + 1)} className="px-2.5 py-1 text-muted-foreground">+</button>
+                          <button onClick={() => updateQty(i.id, i.quantity + 1, i.product.stock)} className="px-2.5 py-1 text-muted-foreground">+</button>
                         </div>
                         <button onClick={() => remove(i.id)} className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1"><Trash2 className="h-3.5 w-3.5" /> Remove</button>
                       </div>

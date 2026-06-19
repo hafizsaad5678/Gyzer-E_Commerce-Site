@@ -7,8 +7,8 @@ export function formatPKR(amount: number | string | null | undefined): string {
 export const BRAND = {
   name: "Asif Brothers",
   tagline: "Engineering Hot Water for Pakistan",
-  phone: "+92 300 0000000",
-  whatsapp: "923000000000",
-  email: "[EMAIL_ADDRESS]",
-  address: "Industrial Area, Lahore, Pakistan",
+  phone: "+92 309 8663850",
+  whatsapp: "923098663850",
+  email: "ghamzahmza123@gmail.com",
+  address: "Industrial Area, Gujranwala, Pakistan",
 };

@@ -5,9 +5,24 @@ import { formatPKR } from "@/lib/format";
 import { uploadProductImage } from "@/lib/upload";
 import { Search, Plus, Pencil, Trash2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
+import imgElectric from "@/assets/product-electric.jpg";
+import imgGas from "@/assets/product-gas.jpg";
+import imgInstant from "@/assets/product-instant.jpg";
+import imgSolar from "@/assets/product-solar.jpg";
+
+const catImg: Record<string, string> = { electric: imgElectric, gas: imgGas, instant: imgInstant, solar: imgSolar };
+
+type ProductSearch = {
+  category?: string;
+};
 
 export const Route = createFileRoute("/_authenticated/admin/products")({
   component: AdminProducts,
+  validateSearch: (search: Record<string, unknown>): ProductSearch => {
+    return {
+      category: search.category as string | undefined,
+    };
+  },
 });
 
 type Category = { id: string; name: string; slug: string };
@@ -18,11 +33,17 @@ function slugify(s: string) {
 }
 
 function AdminProducts() {
+  const search = Route.useSearch();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [q, setQ] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState(search.category ?? "");
   const [editing, setEditing] = useState<Product | null>(null);
   const [showNew, setShowNew] = useState(false);
+
+  useEffect(() => {
+    setCategoryFilter(search.category ?? "");
+  }, [search.category]);
 
   async function load() {
     const [{ data: ps }, { data: cs }] = await Promise.all([
@@ -55,7 +76,8 @@ function AdminProducts() {
   }
 
   const filtered = products.filter(
-    (p) => !q || p.name.toLowerCase().includes(q.toLowerCase()) || p.sku.toLowerCase().includes(q.toLowerCase()),
+    (p) => (!q || p.name.toLowerCase().includes(q.toLowerCase()) || p.sku.toLowerCase().includes(q.toLowerCase())) &&
+           (!categoryFilter || p.categories?.slug === categoryFilter)
   );
 
   return (
@@ -69,6 +91,12 @@ function AdminProducts() {
           <div className="relative">
             <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm w-64" />
+          </div>
+          <div className="relative">
+            <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm w-48 appearance-none">
+              <option value="">All Categories</option>
+              {categories.map((c) => <option key={c.id} value={c.slug}>{c.name}</option>)}
+            </select>
           </div>
           <button onClick={() => setShowNew(true)} className="inline-flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
             <Plus className="h-4 w-4" /> New product
@@ -91,14 +119,16 @@ function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((p) => (
+              {filtered.map((p) => {
+                const imgUrl = p.cover_image_url || catImg[p.categories?.slug ?? ""];
+                return (
                 <tr key={p.id}>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      {p.cover_image_url ? (
-                        <img src={p.cover_image_url} alt="" className="h-10 w-10 rounded object-cover bg-steel/30" />
+                      {imgUrl ? (
+                        <img src={imgUrl} alt="" className="h-10 w-10 rounded object-cover bg-steel/30 shrink-0" />
                       ) : (
-                        <div className="h-10 w-10 rounded bg-steel/30" />
+                        <div className="h-10 w-10 rounded bg-steel/30 shrink-0" />
                       )}
                       <div>
                         <div className="font-medium">{p.name}</div>
@@ -127,7 +157,8 @@ function AdminProducts() {
                     </button>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
               {filtered.length === 0 && (
                 <tr><td colSpan={7} className="px-4 py-10 text-center text-muted-foreground">No products found.</td></tr>
               )}
