@@ -128,7 +128,7 @@ function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute left-0 lg:left-auto lg:right-0 top-full mt-2 w-80 sm:w-96 rounded-lg border border-border bg-card shadow-2xl z-50 overflow-hidden text-foreground">
+        <div className="absolute left-0 top-full mt-2 w-80 sm:w-96 rounded-lg border border-border bg-card shadow-2xl z-50 overflow-hidden text-foreground">
           <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-secondary/50">
             <span className="text-sm font-semibold">Notifications ({count})</span>
             <button onClick={() => setOpen(false)} className="text-muted-foreground hover:text-foreground">

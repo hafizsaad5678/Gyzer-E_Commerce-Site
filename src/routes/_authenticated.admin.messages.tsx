@@ -90,7 +90,7 @@ function AdminMessages() {
         is_read: true,
         admin_reply: replyText,
         replied_at: new Date().toISOString(),
-      }).eq("id", msg.id);
+      } as any).eq("id", msg.id);
 
       toast.success(`Reply sent to ${msg.email}`);
       setReplyingId(null);
@@ -102,9 +102,9 @@ function AdminMessages() {
         is_read: true,
         admin_reply: replyText,
         replied_at: new Date().toISOString(),
-      }).eq("id", msg.id);
+      } as any).eq("id", msg.id);
 
-      toast.info("Reply saved. Email delivery requires the Edge Function to be deployed.");
+      toast.error(`Reply saved, but email failed: ${err.message || "Edge Function not deployed properly."}`);
       setReplyingId(null);
       setReplyText("");
       load();

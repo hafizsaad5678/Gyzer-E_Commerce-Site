@@ -117,10 +117,24 @@ function Checkout() {
     const { error: oiErr } = await supabase.from("order_items").insert(orderItems);
     if (oiErr) { setPlacing(false); return toast.error(oiErr.message); }
 
-    // Decrement stock
-    await Promise.all(items.map((i: any) =>
-      supabase.from("products").update({ stock: Math.max(0, (i.products.stock ?? 0) - i.quantity) }).eq("id", i.products.id),
-    ));
+    // Decrement stock and notify admin if low
+    await Promise.all(items.map(async (i: any) => {
+      const currentStock = i.products.stock ?? 0;
+      const newStock = Math.max(0, currentStock - i.quantity);
+      
+      await supabase.from("products").update({ stock: newStock }).eq("id", i.products.id);
+
+      // Send a persistent system notification to the admin messages board if stock is getting low
+      if (currentStock >= 5 && newStock < 5) {
+        await supabase.from("contact_messages").insert({
+          name: "System Alert",
+          email: "system@asifbrothers.com",
+          subject: `Low Stock Alert: ${i.products.name}`,
+          message: `The product "${i.products.name}" has just dropped to ${newStock} items in stock after a recent purchase. Please restock soon!`,
+          is_read: false,
+        });
+      }
+    }));
 
     // Clear cart
     await supabase.from("cart_items").delete().eq("user_id", user_id);

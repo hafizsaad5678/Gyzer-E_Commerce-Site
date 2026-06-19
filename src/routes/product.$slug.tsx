@@ -87,9 +87,17 @@ function ProductPage() {
     if (!signedIn) { toast.info("Please sign in to add to cart"); window.location.href = "/auth?redirect=" + encodeURIComponent("/product/" + slug); return; }
     setAdding(true);
     const { data: existing } = await supabase.from("cart_items").select("id,quantity").eq("product_id", (p as any).id).maybeSingle();
+    
+    const newQty = existing ? existing.quantity + qty : qty;
+    if (newQty > p.stock) {
+      setAdding(false);
+      return toast.error(`Cannot add to cart. Only ${p.stock} available in stock.`);
+    }
+
     const { error } = existing
-      ? await supabase.from("cart_items").update({ quantity: existing.quantity + qty }).eq("id", existing.id)
+      ? await supabase.from("cart_items").update({ quantity: newQty }).eq("id", existing.id)
       : await supabase.from("cart_items").insert({ product_id: (p as any).id, quantity: qty, user_id: (await supabase.auth.getUser()).data.user!.id });
+    
     setAdding(false);
     if (error) return toast.error("Could not add to cart");
     toast.success("Added to cart");
@@ -122,11 +130,9 @@ function ProductPage() {
               <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">{p.brand} · {(p as any).categories?.name}</div>
               <h1 className="text-display text-4xl md:text-5xl">{p.name}</h1>
               <p className="mt-3 text-muted-foreground">{p.short_description}</p>
-              {p.stock > 0 && p.stock < 5 && (
-                <div className="inline-block mt-3 px-3 py-1 rounded-md bg-destructive/10 text-destructive text-sm font-medium">
-                  Low Stock Alert: Only {p.stock} remaining
-                </div>
-              )}
+              <div className={`inline-block mt-3 px-3 py-1.5 rounded-md text-sm font-medium ${p.stock <= 0 ? 'bg-destructive/10 text-destructive' : p.stock < 5 ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
+                {p.stock <= 0 ? "Out of stock" : p.stock < 5 ? `Low Stock: Only ${p.stock} remaining` : `${p.stock} in stock`}
+              </div>
             </div>
 
             {reviews.length > 0 && (
