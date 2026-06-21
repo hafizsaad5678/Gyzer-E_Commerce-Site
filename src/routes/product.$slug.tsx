@@ -1,16 +1,19 @@
 import { createFileRoute, notFound, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions, useQueryClient } from "@tanstack/react-query";
-import { ShieldCheck, Truck, Zap, ArrowLeft, ShoppingCart, Heart, Star } from "lucide-react";
+import { ShieldCheck, Truck, Zap, ArrowLeft, ShoppingCart, Heart, Star, GitCompareArrows } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProductCard, type ProductCardData } from "@/components/site/ProductCard";
+import { ImageGallery } from "@/components/site/ImageGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
+import { addRecentlyViewed, getRecentlyViewed, type RVItem } from "@/lib/recently-viewed";
 import imgElectric from "@/assets/product-electric.jpg";
 import imgGas from "@/assets/product-gas.jpg";
 import imgInstant from "@/assets/product-instant.jpg";
 import imgSolar from "@/assets/product-solar.jpg";
+import { addToCompare } from "@/lib/compare";
 
 const catImg: Record<string, string> = { electric: imgElectric, gas: imgGas, instant: imgInstant, solar: imgSolar };
 
@@ -73,15 +76,55 @@ function ProductPage() {
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [recentlyViewed, setRecentlyViewed] = useState<RVItem[]>([]);
 
   useEffect(() => { supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session)); }, []);
+
+  // Track recently viewed
+  useEffect(() => {
+    const item: RVItem = {
+      id: (p as any).id,
+      slug: (p as any).slug,
+      name: p.name,
+      brand: p.brand,
+      price_pkr: Number(p.price_pkr),
+      discount_price_pkr: p.discount_price_pkr ? Number(p.discount_price_pkr) : null,
+      cover_image_url: p.cover_image_url,
+      capacity_liters: p.capacity_liters,
+      warranty_months: p.warranty_months,
+      stock: p.stock,
+    };
+    addRecentlyViewed(item);
+    // Load list excluding current product
+    const rv = getRecentlyViewed().filter((x) => x.id !== (p as any).id);
+    setRecentlyViewed(rv.slice(0, 4));
+  }, [(p as any).id]);
 
   const hasDiscount = p.discount_price_pkr != null && Number(p.discount_price_pkr) < Number(p.price_pkr);
   const price = hasDiscount ? Number(p.discount_price_pkr) : Number(p.price_pkr);
   const fallback = catImg[(p as any).categories?.slug ?? ""];
   const cover = p.cover_image_url || fallback;
+
+  // Build gallery images — product_images first, then cover
+  const galleryImages = (() => {
+    const extras: { url: string; alt: string | null }[] = ((p as any).product_images ?? [])
+      .slice()
+      .sort((a: any, b: any) => a.sort_order - b.sort_order)
+      .map((img: any) => ({ url: img.url, alt: img.alt }));
+    if (extras.length === 0 && cover) return [{ url: cover, alt: p.name }];
+    if (extras.length > 0) return extras;
+    return [];
+  })();
+
   const reviews: any[] = (p as any).reviews ?? [];
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+
+  // Estimated delivery date (3-7 business days)
+  const deliveryMin = new Date();
+  const deliveryMax = new Date();
+  deliveryMin.setDate(deliveryMin.getDate() + 3);
+  deliveryMax.setDate(deliveryMax.getDate() + 7);
+  const fmtDate = (d: Date) => d.toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" });
 
   async function addToCart() {
     if (!signedIn) { toast.info("Please sign in to add to cart"); window.location.href = "/auth?redirect=" + encodeURIComponent("/product/" + slug); return; }
@@ -113,6 +156,25 @@ function ProductPage() {
     toast.success("Saved to wishlist");
   }
 
+  function handleCompare() {
+    const added = addToCompare({
+      id: (p as any).id,
+      slug: (p as any).slug,
+      name: p.name,
+      brand: p.brand,
+      price_pkr: Number(p.price_pkr),
+      discount_price_pkr: p.discount_price_pkr ? Number(p.discount_price_pkr) : null,
+      cover_image_url: p.cover_image_url,
+      capacity_liters: p.capacity_liters,
+      warranty_months: p.warranty_months,
+      stock: p.stock,
+      energy_rating: p.energy_rating,
+      category_name: (p as any).categories?.name ?? null,
+    });
+    if (added) toast.success("Added to comparison list");
+    else toast.info("Product is already in comparison or list is full (max 3)");
+  }
+
   const specs = (p as any).specifications as Record<string, any>;
 
   return (
@@ -121,9 +183,7 @@ function ProductPage() {
         <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="h-4 w-4" /> Back to shop</Link>
 
         <div className="grid lg:grid-cols-2 gap-12">
-          <div className="surface-card overflow-hidden aspect-square bg-steel/30">
-            {cover ? <img src={cover} alt={p.name} width={800} height={800} className="h-full w-full object-cover" /> : <div className="grid h-full place-items-center text-muted-foreground">No image</div>}
-          </div>
+          <ImageGallery images={galleryImages} productName={p.name} />
 
           <div className="space-y-6">
             <div>
@@ -161,8 +221,6 @@ function ProductPage() {
                 <Heart className="h-4 w-4" />
               </button>
             </div>
-
-            <ul className="grid grid-cols-3 gap-3 text-xs">
               <li className="surface-card p-3 text-center"><ShieldCheck className="h-5 w-5 mx-auto mb-1 text-copper" />{p.warranty_months ? `${Math.round(p.warranty_months/12)}-year warranty` : "Warranty"}</li>
               <li className="surface-card p-3 text-center"><Truck className="h-5 w-5 mx-auto mb-1 text-copper" />Nationwide delivery</li>
               <li className="surface-card p-3 text-center"><Zap className="h-5 w-5 mx-auto mb-1 text-copper" />{p.energy_rating ?? "Efficient"}</li>
