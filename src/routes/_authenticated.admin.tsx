@@ -1,7 +1,7 @@
 import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LayoutDashboard, Package, ShoppingCart, Users, FolderTree, MessageSquare, ArrowLeft, Bell, X } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, FolderTree, MessageSquare, ArrowLeft, Bell, X, ShoppingBag } from "lucide-react";
 import { Toaster } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -15,6 +15,7 @@ const nav = [
   { to: "/admin/categories", label: "Categories", icon: FolderTree },
   { to: "/admin/customers", label: "Customers", icon: Users },
   { to: "/admin/messages", label: "Messages", icon: MessageSquare },
+  { to: "/admin/abandoned-carts", label: "Abandoned Carts", icon: ShoppingBag },
 ];
 
 function AdminLayout() {

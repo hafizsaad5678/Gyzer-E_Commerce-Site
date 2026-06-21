@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useSuspenseQuery, queryOptions } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { ArrowRight, ShieldCheck, Truck, Wrench, Star } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { ProductCard, type ProductCardData } from "@/components/site/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
+import { getRecentlyViewed, type RVItem } from "@/lib/recently-viewed";
 import hero from "@/assets/hero-geyser.jpg";
 import imgElectric from "@/assets/product-electric.jpg";
 import imgGas from "@/assets/product-gas.jpg";
@@ -66,6 +68,11 @@ const catImg: Record<string, string> = {
 function Home() {
   const { data: featured } = useSuspenseQuery(featuredOpts);
   const { data: categories } = useSuspenseQuery(categoriesOpts);
+  const [recentlyViewed, setRecentlyViewed] = useState<RVItem[]>([]);
+
+  useEffect(() => {
+    setRecentlyViewed(getRecentlyViewed().slice(0, 4));
+  }, []);
 
   return (
     <SiteLayout>
@@ -185,6 +192,23 @@ function Home() {
           </div>
         </div>
       </section>
+
+      {/* RECENTLY VIEWED */}
+      {recentlyViewed.length > 0 && (
+        <section className="container-page pb-20">
+          <div className="flex items-end justify-between mb-10 gap-6">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Your history</div>
+              <h2 className="text-display text-3xl md:text-4xl">Recently viewed</h2>
+            </div>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {recentlyViewed.map((p) => (
+              <ProductCard key={p.id} p={p} />
+            ))}
+          </div>
+        </section>
+      )}
     </SiteLayout>
   );
 }
