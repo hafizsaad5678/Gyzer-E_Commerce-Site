@@ -2,9 +2,11 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPKR } from "@/lib/format";
-import { CreditCard, ArrowLeft, Banknote, ShieldCheck } from "lucide-react";
+import { formatPKR, BRAND } from "@/lib/format";
+import { CreditCard, ArrowLeft, Banknote, ShieldCheck, Smartphone, Building2 } from "lucide-react";
 import { toast } from "sonner";
+
+type PaymentMethod = "cod" | "easypaisa" | "jazzcash" | "bank" | "card";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — Asif Brothers" }, { name: "robots", content: "noindex" }] }),
@@ -22,6 +24,7 @@ function Checkout() {
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [notes, setNotes] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
   const [newAddr, setNewAddr] = useState({
     full_name: "", phone: "", line1: "", line2: "", city: "", province: "", postal_code: "", country: "Pakistan",
   });
@@ -213,20 +216,11 @@ function Checkout() {
             {/* Payment */}
             <div className="surface-card p-6 space-y-4">
               <h2 className="text-display text-xl">Payment method</h2>
-              <div className="p-4 rounded-md border border-copper bg-copper/5 flex items-start gap-3">
-                <Banknote className="h-5 w-5 text-copper mt-0.5" />
-                <div className="text-sm">
-                  <div className="font-medium">Cash on Delivery</div>
-                  <div className="text-muted-foreground">Pay in cash to the delivery agent upon receiving your geyser.</div>
-                </div>
-              </div>
-              <div className="p-4 rounded-md border border-border bg-secondary/40 flex items-start gap-3 opacity-60">
-                <CreditCard className="h-5 w-5 mt-0.5" />
-                <div className="text-sm">
-                  <div className="font-medium">Card payment</div>
-                  <div className="text-muted-foreground">Coming soon — secure card checkout via Stripe.</div>
-                </div>
-              </div>
+              <PaymentSelector selected={paymentMethod} onChange={setPaymentMethod} />
+              {paymentMethod === "bank" && <BankTransferInfo />}
+              {(paymentMethod === "easypaisa" || paymentMethod === "jazzcash") && (
+                <MobileWalletInfo method={paymentMethod} total={total} />
+              )}
             </div>
 
             <div className="surface-card p-6 space-y-2">
@@ -284,4 +278,79 @@ const inputCls = "w-full rounded-md border border-input bg-background px-3 py-2 
 
 function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return <div className="flex justify-between"><dt className="text-muted-foreground">{k}</dt><dd className={accent ? "text-copper font-medium" : ""}>{v}</dd></div>;
+}
+
+type PaymentMethod = "cod" | "easypaisa" | "jazzcash" | "bank" | "card";
+
+function PaymentSelector({ selected, onChange }: { selected: PaymentMethod; onChange: (m: PaymentMethod) => void }) {
+  const options: { id: PaymentMethod; label: string; desc: string; icon: React.ReactNode; disabled?: boolean }[] = [
+    { id: "cod", label: "Cash on Delivery", desc: "Pay in cash when your geyser arrives.", icon: <Banknote className="h-5 w-5 text-copper mt-0.5" /> },
+    { id: "easypaisa", label: "Easypaisa", desc: "Send payment to our Easypaisa account.", icon: <Smartphone className="h-5 w-5 text-green-500 mt-0.5" /> },
+    { id: "jazzcash", label: "JazzCash", desc: "Send payment to our JazzCash account.", icon: <Smartphone className="h-5 w-5 text-red-500 mt-0.5" /> },
+    { id: "bank", label: "Bank Transfer", desc: "Direct bank transfer (IBFT/online banking).", icon: <Building2 className="h-5 w-5 text-blue-500 mt-0.5" /> },
+    { id: "card", label: "Card payment", desc: "Coming soon — secure card checkout.", icon: <CreditCard className="h-5 w-5 mt-0.5" />, disabled: true },
+  ];
+  return (
+    <div className="space-y-2">
+      {options.map((opt) => (
+        <label
+          key={opt.id}
+          className={`flex items-start gap-3 p-4 rounded-md border cursor-pointer transition-colors ${opt.disabled ? "opacity-50 cursor-not-allowed" : ""} ${selected === opt.id && !opt.disabled ? "border-copper bg-copper/5" : "border-border hover:bg-secondary/40"}`}
+        >
+          <input
+            type="radio"
+            name="payment"
+            value={opt.id}
+            checked={selected === opt.id}
+            disabled={opt.disabled}
+            onChange={() => !opt.disabled && onChange(opt.id)}
+            className="mt-1"
+          />
+          {opt.icon}
+          <div className="text-sm">
+            <div className="font-medium">{opt.label}</div>
+            <div className="text-muted-foreground text-xs mt-0.5">{opt.desc}</div>
+          </div>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function BankTransferInfo() {
+  return (
+    <div className="rounded-md border border-blue-500/30 bg-blue-500/5 p-4 text-sm space-y-2">
+      <div className="font-semibold text-foreground">Bank Transfer Details</div>
+      <div className="space-y-1 text-muted-foreground">
+        <div><span className="text-foreground font-medium">Bank:</span> HBL (Habib Bank Limited)</div>
+        <div><span className="text-foreground font-medium">Account name:</span> {BRAND.name}</div>
+        <div><span className="text-foreground font-medium">Account #:</span> 0123-4567890-03</div>
+        <div><span className="text-foreground font-medium">IBAN:</span> PK36HABB0000123456789003</div>
+        <div><span className="text-foreground font-medium">Branch:</span> Gujranwala Main Branch</div>
+      </div>
+      <p className="text-xs text-muted-foreground border-t border-blue-500/20 pt-2">
+        After transferring, WhatsApp your receipt to <span className="text-foreground font-medium">{BRAND.phone}</span> with your order number. Your order will be confirmed within 2 working hours.
+      </p>
+    </div>
+  );
+}
+
+function MobileWalletInfo({ method, total }: { method: "easypaisa" | "jazzcash"; total: number }) {
+  const isEp = method === "easypaisa";
+  const color = isEp ? "green" : "red";
+  const number = isEp ? "0309-8663850" : "0309-8663850";
+  const name = isEp ? "Easypaisa" : "JazzCash";
+  return (
+    <div className={`rounded-md border border-${color}-500/30 bg-${color}-500/5 p-4 text-sm space-y-2`}>
+      <div className="font-semibold text-foreground">{name} Payment Details</div>
+      <div className="space-y-1 text-muted-foreground">
+        <div><span className="text-foreground font-medium">Account name:</span> {BRAND.name}</div>
+        <div><span className="text-foreground font-medium">Mobile number:</span> {number}</div>
+        <div><span className="text-foreground font-medium">Amount:</span> {formatPKR(total)}</div>
+      </div>
+      <p className="text-xs text-muted-foreground border-t border-border pt-2">
+        Send <strong>{formatPKR(total)}</strong> to the above number via {name}, then WhatsApp the payment screenshot to <span className="text-foreground font-medium">{BRAND.phone}</span> with your order number.
+      </p>
+    </div>
+  );
 }

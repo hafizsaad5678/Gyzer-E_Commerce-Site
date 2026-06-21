@@ -9,11 +9,11 @@ import { ImageGallery } from "@/components/site/ImageGallery";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { addRecentlyViewed, getRecentlyViewed, type RVItem } from "@/lib/recently-viewed";
+import { addToCompare } from "@/lib/compare";
 import imgElectric from "@/assets/product-electric.jpg";
 import imgGas from "@/assets/product-gas.jpg";
 import imgInstant from "@/assets/product-instant.jpg";
 import imgSolar from "@/assets/product-solar.jpg";
-import { addToCompare } from "@/lib/compare";
 
 const catImg: Record<string, string> = { electric: imgElectric, gas: imgGas, instant: imgInstant, solar: imgSolar };
 
@@ -78,9 +78,11 @@ function ProductPage() {
   const [signedIn, setSignedIn] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<RVItem[]>([]);
 
-  useEffect(() => { supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session)); }, []);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+  }, []);
 
-  // Track recently viewed
+  // Track recently viewed in localStorage
   useEffect(() => {
     const item: RVItem = {
       id: (p as any).id,
@@ -95,7 +97,6 @@ function ProductPage() {
       stock: p.stock,
     };
     addRecentlyViewed(item);
-    // Load list excluding current product
     const rv = getRecentlyViewed().filter((x) => x.id !== (p as any).id);
     setRecentlyViewed(rv.slice(0, 4));
   }, [(p as any).id]);
@@ -105,42 +106,42 @@ function ProductPage() {
   const fallback = catImg[(p as any).categories?.slug ?? ""];
   const cover = p.cover_image_url || fallback;
 
-  // Build gallery images — product_images first, then cover
+  // Build gallery — product_images sorted, fallback to cover
   const galleryImages = (() => {
     const extras: { url: string; alt: string | null }[] = ((p as any).product_images ?? [])
       .slice()
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
       .map((img: any) => ({ url: img.url, alt: img.alt }));
-    if (extras.length === 0 && cover) return [{ url: cover, alt: p.name }];
     if (extras.length > 0) return extras;
+    if (cover) return [{ url: cover, alt: p.name }];
     return [];
   })();
 
   const reviews: any[] = (p as any).reviews ?? [];
   const avgRating = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
 
-  // Estimated delivery date (3-7 business days)
-  const deliveryMin = new Date();
-  const deliveryMax = new Date();
-  deliveryMin.setDate(deliveryMin.getDate() + 3);
-  deliveryMax.setDate(deliveryMax.getDate() + 7);
+  // Estimated delivery (3–7 business days)
+  const deliveryMin = new Date(); deliveryMin.setDate(deliveryMin.getDate() + 3);
+  const deliveryMax = new Date(); deliveryMax.setDate(deliveryMax.getDate() + 7);
   const fmtDate = (d: Date) => d.toLocaleDateString("en-PK", { weekday: "short", day: "numeric", month: "short" });
 
   async function addToCart() {
-    if (!signedIn) { toast.info("Please sign in to add to cart"); window.location.href = "/auth?redirect=" + encodeURIComponent("/product/" + slug); return; }
+    if (!signedIn) {
+      toast.info("Please sign in to add to cart");
+      window.location.href = "/auth?redirect=" + encodeURIComponent("/product/" + slug);
+      return;
+    }
     setAdding(true);
-    const { data: existing } = await supabase.from("cart_items").select("id,quantity").eq("product_id", (p as any).id).maybeSingle();
-    
+    const { data: existing } = await supabase
+      .from("cart_items").select("id,quantity").eq("product_id", (p as any).id).maybeSingle();
     const newQty = existing ? existing.quantity + qty : qty;
     if (newQty > p.stock) {
       setAdding(false);
-      return toast.error(`Cannot add to cart. Only ${p.stock} available in stock.`);
+      return toast.error(`Only ${p.stock} available in stock.`);
     }
-
     const { error } = existing
       ? await supabase.from("cart_items").update({ quantity: newQty }).eq("id", existing.id)
       : await supabase.from("cart_items").insert({ product_id: (p as any).id, quantity: qty, user_id: (await supabase.auth.getUser()).data.user!.id });
-    
     setAdding(false);
     if (error) return toast.error("Could not add to cart");
     toast.success("Added to cart");
@@ -151,7 +152,7 @@ function ProductPage() {
     if (!signedIn) { toast.info("Please sign in to save items"); return; }
     const uid = (await supabase.auth.getUser()).data.user!.id;
     const { error } = await supabase.from("wishlist_items").insert({ product_id: (p as any).id, user_id: uid });
-    if (error && error.message.includes("duplicate")) return toast.info("Already in wishlist");
+    if (error?.message.includes("duplicate")) return toast.info("Already in wishlist");
     if (error) return toast.error("Could not save");
     toast.success("Saved to wishlist");
   }
@@ -171,8 +172,8 @@ function ProductPage() {
       energy_rating: p.energy_rating,
       category_name: (p as any).categories?.name ?? null,
     });
-    if (added) toast.success("Added to comparison list");
-    else toast.info("Product is already in comparison or list is full (max 3)");
+    if (added) toast.success("Added to comparison — visit /compare to compare");
+    else toast.info("Already in comparison list or list is full (max 3)");
   }
 
   const specs = (p as any).specifications as Record<string, any>;
@@ -180,24 +181,34 @@ function ProductPage() {
   return (
     <SiteLayout>
       <div className="container-page py-8">
-        <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"><ArrowLeft className="h-4 w-4" /> Back to shop</Link>
+        <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6">
+          <ArrowLeft className="h-4 w-4" /> Back to shop
+        </Link>
 
         <div className="grid lg:grid-cols-2 gap-12">
+          {/* Left: image gallery */}
           <ImageGallery images={galleryImages} productName={p.name} />
 
+          {/* Right: product info */}
           <div className="space-y-6">
             <div>
-              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">{p.brand} · {(p as any).categories?.name}</div>
+              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+                {p.brand} · {(p as any).categories?.name}
+              </div>
               <h1 className="text-display text-4xl md:text-5xl">{p.name}</h1>
               <p className="mt-3 text-muted-foreground">{p.short_description}</p>
-              <div className={`inline-block mt-3 px-3 py-1.5 rounded-md text-sm font-medium ${p.stock <= 0 ? 'bg-destructive/10 text-destructive' : p.stock < 5 ? 'bg-destructive/10 text-destructive' : 'bg-success/10 text-success'}`}>
+              <div className={`inline-block mt-3 px-3 py-1.5 rounded-md text-sm font-medium ${p.stock <= 0 ? "bg-destructive/10 text-destructive" : p.stock < 5 ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
                 {p.stock <= 0 ? "Out of stock" : p.stock < 5 ? `Low Stock: Only ${p.stock} remaining` : `${p.stock} in stock`}
               </div>
             </div>
 
             {reviews.length > 0 && (
               <div className="flex items-center gap-2 text-sm">
-                <div className="flex text-copper">{Array.from({ length: 5 }).map((_, i) => <Star key={i} className={`h-4 w-4 ${i < Math.round(avgRating) ? "fill-current" : ""}`} />)}</div>
+                <div className="flex text-copper">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star key={i} className={`h-4 w-4 ${i < Math.round(avgRating) ? "fill-current" : ""}`} />
+                  ))}
+                </div>
                 <span className="text-muted-foreground">{avgRating.toFixed(1)} · {reviews.length} reviews</span>
               </div>
             )}
@@ -205,25 +216,68 @@ function ProductPage() {
             <div className="flex items-baseline gap-3 py-4 border-y border-border">
               <span className="text-3xl font-semibold">{formatPKR(price)}</span>
               {hasDiscount && <span className="text-base text-muted-foreground line-through">{formatPKR(p.price_pkr)}</span>}
-              {hasDiscount && <span className="ml-2 rounded bg-copper/15 text-copper px-2 py-0.5 text-xs font-semibold">SAVE {Math.round((1 - price/Number(p.price_pkr))*100)}%</span>}
+              {hasDiscount && (
+                <span className="ml-2 rounded bg-copper/15 text-copper px-2 py-0.5 text-xs font-semibold">
+                  SAVE {Math.round((1 - price / Number(p.price_pkr)) * 100)}%
+                </span>
+              )}
             </div>
 
-            <div className="flex items-center gap-3">
+            {/* Actions */}
+            <div className="flex flex-wrap items-center gap-2">
               <div className="inline-flex items-center rounded-md border border-input">
                 <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2 text-muted-foreground hover:text-foreground">−</button>
                 <span className="px-4 py-2 text-sm font-medium">{qty}</span>
                 <button onClick={() => setQty(Math.min(p.stock, qty + 1))} className="px-3 py-2 text-muted-foreground hover:text-foreground">+</button>
               </div>
-              <button disabled={adding || p.stock <= 0} onClick={addToCart} className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50">
-                <ShoppingCart className="h-4 w-4" /> {p.stock <= 0 ? "Out of stock" : adding ? "Adding..." : "Add to cart"}
+              <button
+                disabled={adding || p.stock <= 0}
+                onClick={addToCart}
+                className="flex-1 inline-flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                {p.stock <= 0 ? "Out of stock" : adding ? "Adding..." : "Add to cart"}
               </button>
-              <button onClick={toggleWishlist} className="grid h-11 w-11 place-items-center rounded-md border border-input text-muted-foreground hover:text-copper hover:border-copper" aria-label="Save">
+              <button
+                onClick={toggleWishlist}
+                className="grid h-11 w-11 place-items-center rounded-md border border-input text-muted-foreground hover:text-copper hover:border-copper"
+                aria-label="Save to wishlist"
+              >
                 <Heart className="h-4 w-4" />
               </button>
+              <button
+                onClick={handleCompare}
+                className="grid h-11 w-11 place-items-center rounded-md border border-input text-muted-foreground hover:text-copper hover:border-copper"
+                aria-label="Add to comparison"
+                title="Compare"
+              >
+                <GitCompareArrows className="h-4 w-4" />
+              </button>
             </div>
-              <li className="surface-card p-3 text-center"><ShieldCheck className="h-5 w-5 mx-auto mb-1 text-copper" />{p.warranty_months ? `${Math.round(p.warranty_months/12)}-year warranty` : "Warranty"}</li>
-              <li className="surface-card p-3 text-center"><Truck className="h-5 w-5 mx-auto mb-1 text-copper" />Nationwide delivery</li>
-              <li className="surface-card p-3 text-center"><Zap className="h-5 w-5 mx-auto mb-1 text-copper" />{p.energy_rating ?? "Efficient"}</li>
+
+            {/* Estimated delivery */}
+            <div className="flex items-center gap-2.5 rounded-md border border-border bg-secondary/40 px-4 py-3 text-sm">
+              <Truck className="h-4 w-4 text-copper shrink-0" />
+              <span>
+                <span className="font-medium text-foreground">Estimated delivery: </span>
+                <span className="text-muted-foreground">{fmtDate(deliveryMin)} – {fmtDate(deliveryMax)}</span>
+              </span>
+            </div>
+
+            {/* Trust badges */}
+            <ul className="grid grid-cols-3 gap-3 text-xs text-center">
+              <li className="surface-card p-3">
+                <ShieldCheck className="h-5 w-5 mx-auto mb-1 text-copper" />
+                {p.warranty_months ? `${Math.round(p.warranty_months / 12)}-year warranty` : "Warranty"}
+              </li>
+              <li className="surface-card p-3">
+                <Truck className="h-5 w-5 mx-auto mb-1 text-copper" />
+                Nationwide delivery
+              </li>
+              <li className="surface-card p-3">
+                <Zap className="h-5 w-5 mx-auto mb-1 text-copper" />
+                {p.energy_rating ?? "Efficient"}
+              </li>
             </ul>
 
             <div className="surface-card p-6 space-y-4">
@@ -235,9 +289,24 @@ function ProductPage() {
               <div className="surface-card p-6">
                 <h3 className="text-display text-xl mb-4">Specifications</h3>
                 <dl className="grid grid-cols-2 gap-y-3 text-sm">
-                  {p.capacity_liters && (<><dt className="text-muted-foreground">Capacity</dt><dd>{p.capacity_liters} L</dd></>)}
-                  {p.warranty_months && (<><dt className="text-muted-foreground">Warranty</dt><dd>{p.warranty_months} months</dd></>)}
-                  {p.sku && (<><dt className="text-muted-foreground">SKU</dt><dd>{p.sku}</dd></>)}
+                  {p.capacity_liters && (
+                    <>
+                      <dt className="text-muted-foreground">Capacity</dt>
+                      <dd>{p.capacity_liters} L</dd>
+                    </>
+                  )}
+                  {p.warranty_months && (
+                    <>
+                      <dt className="text-muted-foreground">Warranty</dt>
+                      <dd>{p.warranty_months} months</dd>
+                    </>
+                  )}
+                  {p.sku && (
+                    <>
+                      <dt className="text-muted-foreground">SKU</dt>
+                      <dd>{p.sku}</dd>
+                    </>
+                  )}
                   {Object.entries(specs).map(([k, v]) => (
                     <div key={k} className="contents">
                       <dt className="text-muted-foreground capitalize">{k.replace(/_/g, " ")}</dt>
@@ -252,11 +321,28 @@ function ProductPage() {
           </div>
         </div>
 
+        {/* Frequently Bought Together */}
         {related.length > 0 && (
           <section className="mt-20">
-            <h2 className="text-display text-2xl mb-6">You may also like</h2>
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Often paired with</div>
+            <h2 className="text-display text-2xl mb-6">Frequently bought together</h2>
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              {related.map((r: any) => <ProductCard key={r.id} p={r as ProductCardData} fallbackImg={catImg[r.categories?.slug ?? ""]} />)}
+              {related.map((r: any) => (
+                <ProductCard key={r.id} p={r as ProductCardData} fallbackImg={catImg[r.categories?.slug ?? ""]} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Recently Viewed */}
+        {recentlyViewed.length > 0 && (
+          <section className="mt-16 pt-10 border-t border-border">
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Your history</div>
+            <h2 className="text-display text-2xl mb-6">Recently viewed</h2>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+              {recentlyViewed.map((r) => (
+                <ProductCard key={r.id} p={r} fallbackImg={catImg[""]} />
+              ))}
             </div>
           </section>
         )}
@@ -301,7 +387,11 @@ function ReviewsSection({ productId, reviews, signedIn }: { productId: string; r
           {reviews.slice(0, 6).map((r, i) => (
             <li key={i} className="border-b border-border last:border-0 pb-4 last:pb-0">
               <div className="flex items-center gap-2 mb-1">
-                <div className="flex text-copper">{Array.from({ length: 5 }).map((_, j) => <Star key={j} className={`h-3.5 w-3.5 ${j < r.rating ? "fill-current" : ""}`} />)}</div>
+                <div className="flex text-copper">
+                  {Array.from({ length: 5 }).map((_, j) => (
+                    <Star key={j} className={`h-3.5 w-3.5 ${j < r.rating ? "fill-current" : ""}`} />
+                  ))}
+                </div>
                 <span className="text-xs text-muted-foreground">{new Date(r.created_at).toLocaleDateString()}</span>
               </div>
               {r.title && <div className="font-medium text-sm mb-1">{r.title}</div>}
@@ -310,7 +400,6 @@ function ReviewsSection({ productId, reviews, signedIn }: { productId: string; r
           ))}
         </ul>
       )}
-
       <div className="border-t border-border pt-5">
         <div className="text-sm font-medium mb-3">Write a review</div>
         <div className="flex items-center gap-1 mb-3">
@@ -327,9 +416,24 @@ function ReviewsSection({ productId, reviews, signedIn }: { productId: string; r
             </button>
           ))}
         </div>
-        <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Title (optional)" className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-2" />
-        <textarea value={body} onChange={(e) => setBody(e.target.value)} placeholder="Share your experience with this product…" rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-3" />
-        <button onClick={submit} disabled={submitting} className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Title (optional)"
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-2"
+        />
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Share your experience with this product…"
+          rows={3}
+          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm mb-3"
+        />
+        <button
+          onClick={submit}
+          disabled={submitting}
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+        >
           {submitting ? "Submitting…" : "Submit review"}
         </button>
       </div>

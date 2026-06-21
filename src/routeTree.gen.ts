@@ -18,6 +18,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CompareRouteImport } from './routes/compare'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CategoriesRouteImport } from './routes/categories'
 import { Route as CartRouteImport } from './routes/cart'
@@ -28,6 +29,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as CategoriesIndexRouteImport } from './routes/categories.index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as OrderConfirmationIdRouteImport } from './routes/order-confirmation.$id'
+import { Route as InvoiceIdRouteImport } from './routes/invoice.$id'
 import { Route as CategoriesSlugRouteImport } from './routes/categories.$slug'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
@@ -88,6 +90,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompareRoute = CompareRouteImport.update({
+  id: '/compare',
+  path: '/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
@@ -135,6 +142,11 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
 const OrderConfirmationIdRoute = OrderConfirmationIdRouteImport.update({
   id: '/order-confirmation/$id',
   path: '/order-confirmation/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InvoiceIdRoute = InvoiceIdRouteImport.update({
+  id: '/invoice/$id',
+  path: '/invoice/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CategoriesSlugRoute = CategoriesSlugRouteImport.update({
@@ -225,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/checkout': typeof CheckoutRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
@@ -237,6 +250,7 @@ export interface FileRoutesByFullPath {
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/categories/$slug': typeof CategoriesSlugRoute
+  '/invoice/$id': typeof InvoiceIdRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/categories/': typeof CategoriesIndexRoute
@@ -258,6 +272,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
@@ -268,6 +283,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/warranty': typeof WarrantyRoute
   '/categories/$slug': typeof CategoriesSlugRoute
+  '/invoice/$id': typeof InvoiceIdRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/categories': typeof CategoriesIndexRoute
@@ -292,6 +308,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/categories': typeof CategoriesRouteWithChildren
   '/checkout': typeof CheckoutRoute
+  '/compare': typeof CompareRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/privacy': typeof PrivacyRoute
@@ -304,6 +321,7 @@ export interface FileRoutesById {
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/categories/$slug': typeof CategoriesSlugRoute
+  '/invoice/$id': typeof InvoiceIdRoute
   '/order-confirmation/$id': typeof OrderConfirmationIdRoute
   '/product/$slug': typeof ProductSlugRoute
   '/categories/': typeof CategoriesIndexRoute
@@ -328,6 +346,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/checkout'
+    | '/compare'
     | '/contact'
     | '/faq'
     | '/privacy'
@@ -340,6 +359,7 @@ export interface FileRouteTypes {
     | '/account'
     | '/admin'
     | '/categories/$slug'
+    | '/invoice/$id'
     | '/order-confirmation/$id'
     | '/product/$slug'
     | '/categories/'
@@ -361,6 +381,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/cart'
     | '/checkout'
+    | '/compare'
     | '/contact'
     | '/faq'
     | '/privacy'
@@ -371,6 +392,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/warranty'
     | '/categories/$slug'
+    | '/invoice/$id'
     | '/order-confirmation/$id'
     | '/product/$slug'
     | '/categories'
@@ -394,6 +416,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/categories'
     | '/checkout'
+    | '/compare'
     | '/contact'
     | '/faq'
     | '/privacy'
@@ -406,6 +429,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account'
     | '/_authenticated/admin'
     | '/categories/$slug'
+    | '/invoice/$id'
     | '/order-confirmation/$id'
     | '/product/$slug'
     | '/categories/'
@@ -430,6 +454,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CategoriesRoute: typeof CategoriesRouteWithChildren
   CheckoutRoute: typeof CheckoutRoute
+  CompareRoute: typeof CompareRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   PrivacyRoute: typeof PrivacyRoute
@@ -439,6 +464,7 @@ export interface RootRouteChildren {
   ShopRoute: typeof ShopRoute
   TermsRoute: typeof TermsRoute
   WarrantyRoute: typeof WarrantyRoute
+  InvoiceIdRoute: typeof InvoiceIdRoute
   OrderConfirmationIdRoute: typeof OrderConfirmationIdRoute
   ProductSlugRoute: typeof ProductSlugRoute
 }
@@ -506,6 +532,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/compare': {
+      id: '/compare'
+      path: '/compare'
+      fullPath: '/compare'
+      preLoaderRoute: typeof CompareRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/checkout': {
@@ -576,6 +609,13 @@ declare module '@tanstack/react-router' {
       path: '/order-confirmation/$id'
       fullPath: '/order-confirmation/$id'
       preLoaderRoute: typeof OrderConfirmationIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invoice/$id': {
+      id: '/invoice/$id'
+      path: '/invoice/$id'
+      fullPath: '/invoice/$id'
+      preLoaderRoute: typeof InvoiceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/categories/$slug': {
@@ -755,6 +795,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CategoriesRoute: CategoriesRouteWithChildren,
   CheckoutRoute: CheckoutRoute,
+  CompareRoute: CompareRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   PrivacyRoute: PrivacyRoute,
@@ -764,6 +805,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShopRoute: ShopRoute,
   TermsRoute: TermsRoute,
   WarrantyRoute: WarrantyRoute,
+  InvoiceIdRoute: InvoiceIdRoute,
   OrderConfirmationIdRoute: OrderConfirmationIdRoute,
   ProductSlugRoute: ProductSlugRoute,
 }
