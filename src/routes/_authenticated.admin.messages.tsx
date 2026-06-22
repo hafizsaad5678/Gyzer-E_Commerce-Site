@@ -59,6 +59,16 @@ function AdminMessages() {
 
     setSending(true);
 
+    let previousReplies: any[] = [];
+    if (msg.admin_reply) {
+      try {
+        previousReplies = JSON.parse(msg.admin_reply);
+      } catch(e) {
+        previousReplies = [{ text: msg.admin_reply, date: msg.replied_at }];
+      }
+    }
+    const newReplies = [...previousReplies, { text: replyText, date: new Date().toISOString() }];
+
     try {
       // Try sending via Supabase Edge Function
       const { data: session } = await supabase.auth.getSession();
@@ -88,7 +98,7 @@ function AdminMessages() {
       // Mark as read + store reply note
       await supabase.from("contact_messages").update({
         is_read: true,
-        admin_reply: replyText,
+        admin_reply: JSON.stringify(newReplies),
         replied_at: new Date().toISOString(),
       } as any).eq("id", msg.id);
 
@@ -97,14 +107,14 @@ function AdminMessages() {
       setReplyText("");
       load();
     } catch (err: any) {
-      // If edge function not deployed yet, still save the reply
+      // If edge function failed, still save the reply
       await supabase.from("contact_messages").update({
         is_read: true,
-        admin_reply: replyText,
+        admin_reply: JSON.stringify(newReplies),
         replied_at: new Date().toISOString(),
       } as any).eq("id", msg.id);
 
-      toast.error(`Reply saved, but email failed: ${err.message || "Edge Function not deployed properly."}`);
+      toast.error(`Reply saved, but email failed: ${err.message || "Edge Function error."}`);
       setReplyingId(null);
       setReplyText("");
       load();
@@ -192,19 +202,46 @@ function AdminMessages() {
 
                 {/* Expanded Content */}
                 {isExpanded && (
-                  <div className="px-5 pb-5 border-t border-border">
-                    <p className="text-sm text-foreground mt-4 whitespace-pre-wrap leading-relaxed">{m.message}</p>
-
-                    {/* Previous Reply */}
-                    {m.admin_reply && (
-                      <div className="mt-4 rounded-md bg-success/10 border border-success/20 p-4">
-                        <div className="flex items-center gap-1.5 text-xs font-medium text-success mb-2">
-                          <CheckCircle2 className="h-3.5 w-3.5" />
-                          Replied on {new Date(m.replied_at).toLocaleString("en-PK")}
+                  <div className="px-5 pb-5 border-t border-border bg-muted/10">
+                    
+                    {/* Chat History Thread */}
+                    <div className="mt-6 flex flex-col gap-6">
+                      
+                      {/* Customer Original Message */}
+                      <div className="flex flex-col gap-1.5 max-w-[85%]">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-sm">{m.name}</span>
+                          <span className="text-[10px] text-muted-foreground">{new Date(m.created_at).toLocaleString("en-PK")}</span>
                         </div>
-                        <p className="text-sm whitespace-pre-wrap">{m.admin_reply}</p>
+                        <div className="bg-background border border-border rounded-xl rounded-tl-sm px-4 py-3 text-sm whitespace-pre-wrap shadow-sm">
+                          {m.message}
+                        </div>
                       </div>
-                    )}
+
+                      {/* Admin Replies */}
+                      {(() => {
+                        let replies: { text: string; date: string }[] = [];
+                        if (m.admin_reply) {
+                          try {
+                            replies = JSON.parse(m.admin_reply);
+                          } catch(e) {
+                            replies = [{ text: m.admin_reply, date: m.replied_at }];
+                          }
+                        }
+
+                        return replies.map((reply, i) => (
+                          <div key={i} className="flex flex-col gap-1.5 self-end max-w-[85%]">
+                            <div className="flex items-center justify-end gap-2">
+                              <span className="text-[10px] text-muted-foreground">{new Date(reply.date).toLocaleString("en-PK")}</span>
+                              <span className="font-semibold text-sm text-copper">You (Admin)</span>
+                            </div>
+                            <div className="bg-copper text-copper-foreground rounded-xl rounded-tr-sm px-4 py-3 text-sm whitespace-pre-wrap shadow-sm text-left">
+                              {reply.text}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
 
                     {/* Actions */}
                     <div className="mt-4 flex items-center gap-2 flex-wrap">
