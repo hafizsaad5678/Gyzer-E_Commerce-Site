@@ -96,7 +96,7 @@ function Checkout() {
         total_pkr: total,
         coupon_code: discount > 0 ? coupon.trim().toUpperCase() : null,
         shipping_address,
-        notes: notes || null,
+        notes: `[Payment: ${paymentMethod.toUpperCase()}] ${notes}`.trim(),
         status: "pending",
         payment_status: "pending",
       })

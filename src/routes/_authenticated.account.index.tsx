@@ -1,25 +1,29 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { queryOptions, useSuspenseQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+const profileOpts = queryOptions({
+  queryKey: ["account-profile"],
+  queryFn: async () => {
+    const { data: u } = await supabase.auth.getUser();
+    const email = u.user?.email ?? "";
+    const { data } = await supabase.from("profiles").select("*").eq("id", u.user!.id).maybeSingle();
+    return { email, profile: data ?? { full_name: "", phone: "" } };
+  },
+});
+
 export const Route = createFileRoute("/_authenticated/account/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(profileOpts),
   component: Profile,
 });
 
 function Profile() {
-  const [profile, setProfile] = useState<any>(null);
-  const [email, setEmail] = useState("");
+  const { data } = useSuspenseQuery(profileOpts);
+  const { email, profile } = data;
+  const qc = useQueryClient();
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      setEmail(u.user?.email ?? "");
-      const { data } = await supabase.from("profiles").select("*").eq("id", u.user!.id).maybeSingle();
-      setProfile(data ?? { full_name: "", phone: "" });
-    })();
-  }, []);
 
   async function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -34,9 +38,8 @@ function Profile() {
     setLoading(false);
     if (error) return toast.error("Could not save");
     toast.success("Profile updated");
+    qc.invalidateQueries({ queryKey: ["account-profile"] });
   }
-
-  if (!profile) return <p className="text-muted-foreground text-sm">Loading…</p>;
 
   return (
     <div className="surface-card p-6 md:p-8 max-w-xl">

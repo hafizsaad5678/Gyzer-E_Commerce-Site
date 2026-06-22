@@ -17,10 +17,17 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSignedIn(!!s));
+    supabase.auth.getSession().then(({ data }) => {
+      setSignedIn(!!data.session);
+      setUserName(data.session?.user?.user_metadata?.full_name?.split(" ")[0] ?? "Account");
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      setSignedIn(!!s);
+      setUserName(s?.user?.user_metadata?.full_name?.split(" ")[0] ?? "Account");
+    });
     return () => sub.subscription.unsubscribe();
   }, []);
 
@@ -86,7 +93,7 @@ export function SiteHeader() {
             className="hidden md:inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90"
           >
             <User className="h-4 w-4" />
-            {signedIn ? "Account" : "Sign in"}
+            {signedIn ? (userName ?? "Account") : "Sign in"}
           </Link>
           <button
             onClick={() => setOpen((v) => !v)}

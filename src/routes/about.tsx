@@ -64,6 +64,35 @@ function About() {
           </dl>
         </div>
       </section>
+
+      {/* PAYMENT PROCESS */}
+      <section className="bg-steel/30 border-y border-border">
+        <div className="container-page py-16 md:py-24 max-w-4xl text-center mx-auto">
+          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-3">How Payment Works</div>
+          <h2 className="text-display text-3xl md:text-4xl mb-6">Simple, secure offline payments.</h2>
+          <p className="text-muted-foreground leading-relaxed mb-10">
+            To save you from hidden credit card fees, we've designed a manual payment workflow tailored for Pakistani homes. 
+            When you place an order, you can choose from Cash on Delivery, Bank Transfer, Easypaisa, or JazzCash.
+          </p>
+          <div className="grid sm:grid-cols-3 gap-6 text-left">
+            <div className="surface-card p-6">
+              <div className="inline-grid h-10 w-10 place-items-center rounded-full bg-copper/15 text-copper mb-4 text-lg font-bold">1</div>
+              <h3 className="font-semibold mb-2">Place Order</h3>
+              <p className="text-sm text-muted-foreground">Select your preferred offline payment method at checkout and place the order.</p>
+            </div>
+            <div className="surface-card p-6">
+              <div className="inline-grid h-10 w-10 place-items-center rounded-full bg-copper/15 text-copper mb-4 text-lg font-bold">2</div>
+              <h3 className="font-semibold mb-2">Send Payment</h3>
+              <p className="text-sm text-muted-foreground">Transfer the funds via your banking app, Easypaisa, or JazzCash (skip this for COD).</p>
+            </div>
+            <div className="surface-card p-6">
+              <div className="inline-grid h-10 w-10 place-items-center rounded-full bg-copper/15 text-copper mb-4 text-lg font-bold">3</div>
+              <h3 className="font-semibold mb-2">Verify via WhatsApp</h3>
+              <p className="text-sm text-muted-foreground">WhatsApp us your transaction receipt. We'll verify the funds and ship your geyser!</p>
+            </div>
+          </div>
+        </div>
+      </section>
     </SiteLayout>
   );
 }

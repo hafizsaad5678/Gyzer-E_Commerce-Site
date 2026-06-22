@@ -1,5 +1,6 @@
 import { createFileRoute, useNavigate, useSearch, Link } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const search = useSearch({ from: "/auth" });
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">(search.mode ?? "signin");
   const [loading, setLoading] = useState(false);
 
@@ -35,17 +37,24 @@ function AuthPage() {
       if (mode === "signin") {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
+        qc.clear(); // Clear cache to prevent showing previous user's data
         toast.success("Welcome back!");
         navigate({ to: search.redirect ?? "/account" });
       } else if (mode === "signup") {
         if (password.length < 8) throw new Error("Password must be at least 8 characters");
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email, password,
           options: { emailRedirectTo: window.location.origin, data: { full_name: fullName } },
         });
         if (error) throw error;
-        toast.success("Account created — you're signed in!");
-        navigate({ to: search.redirect ?? "/account" });
+        
+        if (!data.session) {
+          toast.success("Account created! Please check your email to verify before signing in.");
+          setMode("signin");
+        } else {
+          toast.success("Account created — you're signed in!");
+          navigate({ to: search.redirect ?? "/account" });
+        }
       } else {
         const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + "/reset-password" });
         if (error) throw error;

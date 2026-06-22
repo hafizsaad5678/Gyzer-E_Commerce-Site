@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
-import { CheckCircle2, Package, Truck } from "lucide-react";
+import { CheckCircle2, Package, Truck, Smartphone, Building2 } from "lucide-react";
 
 export const Route = createFileRoute("/order-confirmation/$id")({
   head: () => ({ meta: [{ title: "Order confirmed — Asif Brothers" }, { name: "robots", content: "noindex" }] }),
@@ -52,7 +52,12 @@ function OrderConfirmation() {
             </div>
             <div>
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Payment</div>
-              <div className="font-medium">Cash on Delivery</div>
+              <div className="font-medium">
+                {order.notes?.includes("[Payment: COD]") ? "Cash on Delivery" :
+                 order.notes?.includes("[Payment: BANK]") ? "Bank Transfer" :
+                 order.notes?.includes("[Payment: EASYPAISA]") ? "Easypaisa" :
+                 order.notes?.includes("[Payment: JAZZCASH]") ? "JazzCash" : "Manual Payment"}
+              </div>
             </div>
             <div>
               <div className="text-xs uppercase tracking-wider text-muted-foreground mb-1">Total</div>
@@ -99,10 +104,22 @@ function OrderConfirmation() {
             <Package className="h-5 w-5 text-copper mt-0.5" />
             <div className="text-sm"><div className="font-medium">We're preparing your order</div><div className="text-muted-foreground">You'll get an update once it ships.</div></div>
           </div>
-          <div className="surface-card p-5 flex items-start gap-3">
-            <Truck className="h-5 w-5 text-copper mt-0.5" />
-            <div className="text-sm"><div className="font-medium">Pay on delivery</div><div className="text-muted-foreground">Please have {formatPKR(order.total_pkr)} ready in cash.</div></div>
-          </div>
+          {order.notes?.includes("[Payment: COD]") ? (
+            <div className="surface-card p-5 flex items-start gap-3">
+              <Truck className="h-5 w-5 text-copper mt-0.5" />
+              <div className="text-sm"><div className="font-medium">Pay on delivery</div><div className="text-muted-foreground">Please have {formatPKR(order.total_pkr)} ready in cash.</div></div>
+            </div>
+          ) : order.notes?.includes("[Payment: BANK]") ? (
+            <div className="surface-card p-5 flex items-start gap-3">
+              <Building2 className="h-5 w-5 text-copper mt-0.5" />
+              <div className="text-sm"><div className="font-medium">Action Required: Bank Transfer</div><div className="text-muted-foreground">Please transfer {formatPKR(order.total_pkr)} to our HBL account and WhatsApp the receipt.</div></div>
+            </div>
+          ) : (
+            <div className="surface-card p-5 flex items-start gap-3">
+              <Smartphone className="h-5 w-5 text-copper mt-0.5" />
+              <div className="text-sm"><div className="font-medium">Action Required: Mobile Wallet</div><div className="text-muted-foreground">Please send {formatPKR(order.total_pkr)} via Easypaisa/JazzCash and WhatsApp the receipt.</div></div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-3 justify-center">

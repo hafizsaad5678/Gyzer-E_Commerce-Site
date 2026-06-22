@@ -1,10 +1,23 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { Package, ChevronDown, ChevronUp, Printer } from "lucide-react";
 
+const ordersOpts = queryOptions({
+  queryKey: ["account-orders"],
+  queryFn: async () => {
+    const { data } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    return data ?? [];
+  },
+});
+
 export const Route = createFileRoute("/_authenticated/account/orders")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(ordersOpts),
   component: Orders,
 });
 
@@ -59,21 +72,9 @@ function TrackingBar({ status }: { status: string }) {
 }
 
 function Orders() {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: orders } = useSuspenseQuery(ordersOpts);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [orderItems, setOrderItems] = useState<Record<string, any[]>>({});
-
-  useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from("orders")
-        .select("*")
-        .order("created_at", { ascending: false });
-      setOrders(data ?? []);
-      setLoading(false);
-    })();
-  }, []);
 
   async function toggleExpand(orderId: string) {
     if (expanded === orderId) { setExpanded(null); return; }
@@ -83,8 +84,6 @@ function Orders() {
       setOrderItems((prev) => ({ ...prev, [orderId]: data ?? [] }));
     }
   }
-
-  if (loading) return <p className="text-muted-foreground text-sm">Loading…</p>;
 
   if (orders.length === 0) {
     return (

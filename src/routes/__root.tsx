@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -113,9 +114,15 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const isLoading = useRouterState({ select: (s) => s.status === "pending" });
 
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Global loading bar during route transitions */}
+      {isLoading && (
+        <div className="fixed top-0 left-0 right-0 z-50 h-1 w-full bg-copper shadow-[0_0_10px_var(--color-copper)] animate-pulse" />
+      )}
+      
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

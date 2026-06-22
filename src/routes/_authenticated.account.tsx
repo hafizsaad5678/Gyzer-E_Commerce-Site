@@ -1,5 +1,6 @@
 import { createFileRoute, Outlet, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { User, Package, MapPin, Heart, Lock, LogOut, LayoutDashboard } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +20,7 @@ const nav = [
 
 function AccountLayout() {
   const navigate = useNavigate();
+  const qc = useQueryClient();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -32,6 +34,7 @@ function AccountLayout() {
 
   async function signOut() {
     await supabase.auth.signOut();
+    qc.clear();
     toast.success("Signed out");
     navigate({ to: "/" });
   }
