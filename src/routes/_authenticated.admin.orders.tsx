@@ -43,6 +43,8 @@ function AdminOrders() {
           order_total: order.total_pkr,
           status: newStatus,
           order_id: order.id,
+          tracking_number: order.tracking_number,
+          courier_name: order.courier_name,
         },
       })
       .then(({ error: fnErr }) => {
@@ -51,6 +53,18 @@ function AdminOrders() {
 
     toast.success(`Order ${order.order_number} → ${newStatus}`);
     load();
+  }
+
+  async function updateTracking(orderId: string, courier: string | null, tracking: string | null) {
+    const { error } = await supabase
+      .from("orders")
+      .update({ courier_name: courier, tracking_number: tracking })
+      .eq("id", orderId);
+    if (error) toast.error("Failed to update tracking info");
+    else {
+      toast.success("Tracking saved");
+      load(); // refresh data
+    }
   }
 
   return (
@@ -76,6 +90,7 @@ function AdminOrders() {
                 <th className="text-left px-4 py-3">Date</th>
                 <th className="text-right px-4 py-3">Total</th>
                 <th className="text-left px-4 py-3">Status</th>
+                <th className="text-left px-4 py-3">Tracking Details</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -93,6 +108,22 @@ function AdminOrders() {
                     >
                       {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-1.5">
+                      <input
+                        placeholder="Courier (e.g. TCS)"
+                        defaultValue={o.courier_name || ""}
+                        onBlur={(e) => updateTracking(o.id, e.target.value || null, o.tracking_number)}
+                        className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
+                      />
+                      <input
+                        placeholder="Tracking ID"
+                        defaultValue={o.tracking_number || ""}
+                        onBlur={(e) => updateTracking(o.id, o.courier_name, e.target.value || null)}
+                        className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
