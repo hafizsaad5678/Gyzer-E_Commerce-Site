@@ -58,7 +58,7 @@ function AdminOrders() {
   async function updateTracking(orderId: string, courier: string | null, tracking: string | null) {
     const { error } = await supabase
       .from("orders")
-      .update({ courier_name: courier, tracking_number: tracking })
+      .update({ courier_name: courier, tracking_number: tracking } as any)
       .eq("id", orderId);
     if (error) toast.error("Failed to update tracking info");
     else {

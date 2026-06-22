@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarrantyRouteImport } from './routes/warranty'
+import { Route as TrackRouteImport } from './routes/track'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as ShopRouteImport } from './routes/shop'
 import { Route as ShippingRouteImport } from './routes/shipping'
@@ -49,6 +50,11 @@ import { Route as AuthenticatedAccountAddressesRouteImport } from './routes/_aut
 const WarrantyRoute = WarrantyRouteImport.update({
   id: '/warranty',
   path: '/warranty',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TrackRoute = TrackRouteImport.update({
+  id: '/track',
+  path: '/track',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -253,6 +259,7 @@ export interface FileRoutesByFullPath {
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/warranty': typeof WarrantyRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -289,6 +296,7 @@ export interface FileRoutesByTo {
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/warranty': typeof WarrantyRoute
   '/categories/$slug': typeof CategoriesSlugRoute
   '/invoice/$id': typeof InvoiceIdRoute
@@ -326,6 +334,7 @@ export interface FileRoutesById {
   '/shipping': typeof ShippingRoute
   '/shop': typeof ShopRoute
   '/terms': typeof TermsRoute
+  '/track': typeof TrackRoute
   '/warranty': typeof WarrantyRoute
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
@@ -365,6 +374,7 @@ export interface FileRouteTypes {
     | '/shipping'
     | '/shop'
     | '/terms'
+    | '/track'
     | '/warranty'
     | '/account'
     | '/admin'
@@ -401,6 +411,7 @@ export interface FileRouteTypes {
     | '/shipping'
     | '/shop'
     | '/terms'
+    | '/track'
     | '/warranty'
     | '/categories/$slug'
     | '/invoice/$id'
@@ -437,6 +448,7 @@ export interface FileRouteTypes {
     | '/shipping'
     | '/shop'
     | '/terms'
+    | '/track'
     | '/warranty'
     | '/_authenticated/account'
     | '/_authenticated/admin'
@@ -476,6 +488,7 @@ export interface RootRouteChildren {
   ShippingRoute: typeof ShippingRoute
   ShopRoute: typeof ShopRoute
   TermsRoute: typeof TermsRoute
+  TrackRoute: typeof TrackRoute
   WarrantyRoute: typeof WarrantyRoute
   InvoiceIdRoute: typeof InvoiceIdRoute
   OrderConfirmationIdRoute: typeof OrderConfirmationIdRoute
@@ -489,6 +502,13 @@ declare module '@tanstack/react-router' {
       path: '/warranty'
       fullPath: '/warranty'
       preLoaderRoute: typeof WarrantyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/track': {
+      id: '/track'
+      path: '/track'
+      fullPath: '/track'
+      preLoaderRoute: typeof TrackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -826,6 +846,7 @@ const rootRouteChildren: RootRouteChildren = {
   ShippingRoute: ShippingRoute,
   ShopRoute: ShopRoute,
   TermsRoute: TermsRoute,
+  TrackRoute: TrackRoute,
   WarrantyRoute: WarrantyRoute,
   InvoiceIdRoute: InvoiceIdRoute,
   OrderConfirmationIdRoute: OrderConfirmationIdRoute,

@@ -2,8 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR, BRAND } from "@/lib/format";
-import { Printer, ArrowLeft } from "lucide-react";
+import { Printer, ArrowLeft, Download } from "lucide-react";
 import { Link } from "@tanstack/react-router";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/invoice/$id")({
   head: () => ({ meta: [{ title: "Invoice — Asif Brothers" }, { name: "robots", content: "noindex" }] }),
@@ -15,6 +18,7 @@ function InvoicePage() {
   const [order, setOrder] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
   const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,6 +35,116 @@ function InvoicePage() {
 
   function handlePrint() {
     window.print();
+  }
+
+  async function handleDownloadPDF() {
+    setDownloading(true);
+    try {
+      const PDFConstructor = typeof jsPDF === "function" ? jsPDF : (jsPDF as any).jsPDF || (window as any).jspdf?.jsPDF;
+      if (!PDFConstructor) throw new Error("PDF library failed to load");
+      const doc = new PDFConstructor({ orientation: "portrait", unit: "pt", format: "a4" });
+      
+      const addr = order.shipping_address as any;
+      const issueDate = new Date(order.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "long", year: "numeric" });
+      
+      // Header
+      doc.setFontSize(22);
+      doc.setTextColor(2, 8, 23);
+      doc.text(BRAND.name, 40, 60);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(BRAND.address, 40, 80);
+      doc.text(BRAND.phone, 40, 95);
+      doc.text(BRAND.email, 40, 110);
+
+      // Title
+      doc.setFontSize(26);
+      doc.setTextColor(2, 8, 23);
+      doc.text("INVOICE", 550, 60, { align: "right" });
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(`# ${order.order_number}`, 550, 80, { align: "right" });
+      doc.text(`Date: ${issueDate}`, 550, 95, { align: "right" });
+
+      // Bill To
+      doc.setFontSize(10);
+      doc.text("BILL TO", 40, 150);
+      doc.setFontSize(11);
+      doc.setTextColor(2, 8, 23);
+      doc.text(addr?.full_name || "", 40, 165);
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text(addr?.phone || "", 40, 180);
+      doc.text(`${addr?.line1 || ""}${addr?.line2 ? `, ${addr.line2}` : ""}`, 40, 195);
+      doc.text(`${addr?.city || ""}, ${addr?.province || ""} ${addr?.postal_code || ""}`, 40, 210);
+
+      // Table
+      const tableBody = items.map(item => [
+        item.product_name || "Unknown",
+        item.product_sku || "-",
+        item.quantity.toString(),
+        formatPKR(item.unit_price_pkr || 0),
+        formatPKR(item.subtotal_pkr || 0)
+      ]);
+
+      autoTable(doc, {
+        startY: 230,
+        head: [['Description', 'SKU', 'Qty', 'Unit Price', 'Total']],
+        body: tableBody,
+        theme: 'plain',
+        headStyles: { fillColor: [241, 245, 249], textColor: [2, 8, 23], fontStyle: 'bold' },
+        bodyStyles: { textColor: [2, 8, 23] },
+        styles: { cellPadding: 8, fontSize: 10 },
+        columnStyles: {
+          0: { cellWidth: 180 },
+          2: { halign: 'right' },
+          3: { halign: 'right' },
+          4: { halign: 'right', fontStyle: 'bold' }
+        }
+      });
+
+      // Totals
+      const finalY = (doc as any).lastAutoTable.finalY || 230;
+      let currentY = finalY + 30;
+      
+      doc.setFontSize(10);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Subtotal", 400, currentY);
+      doc.setTextColor(2, 8, 23);
+      doc.text(formatPKR(order.subtotal_pkr || 0), 550, currentY, { align: "right" });
+      currentY += 20;
+
+      if (Number(order.discount_pkr) > 0) {
+        doc.setTextColor(100, 116, 139);
+        doc.text("Discount", 400, currentY);
+        doc.setTextColor(184, 115, 51);
+        doc.text(`-${formatPKR(order.discount_pkr)}`, 550, currentY, { align: "right" });
+        currentY += 20;
+      }
+
+      doc.setTextColor(100, 116, 139);
+      doc.text("Shipping", 400, currentY);
+      doc.setTextColor(2, 8, 23);
+      doc.text(Number(order.shipping_pkr) === 0 ? "Free" : formatPKR(order.shipping_pkr || 0), 550, currentY, { align: "right" });
+      currentY += 20;
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(400, currentY - 10, 550, currentY - 10);
+
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(2, 8, 23);
+      doc.text("Total", 400, currentY + 5);
+      doc.text(formatPKR(order.total_pkr || 0), 550, currentY + 5, { align: "right" });
+
+      doc.save(`Invoice-${order.order_number}.pdf`);
+    } catch (err: any) {
+      console.error("Failed to generate PDF", err);
+      toast.error(err.message || "Failed to generate PDF");
+      alert("Error: " + (err.message || "Failed to generate PDF"));
+    } finally {
+      setDownloading(false);
+    }
   }
 
   if (loading) {
@@ -62,12 +176,21 @@ function InvoicePage() {
         <Link to="/account/orders" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
-        <button
-          onClick={handlePrint}
-          className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
-        >
-          <Printer className="h-4 w-4" /> Print / Save PDF
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+          >
+            <Printer className="h-4 w-4" /> Print
+          </button>
+          <button
+            onClick={handleDownloadPDF}
+            disabled={downloading}
+            className="inline-flex items-center gap-2 rounded-md bg-copper px-4 py-2 text-sm font-medium text-copper-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            <Download className="h-4 w-4" /> {downloading ? "Generating..." : "Download PDF"}
+          </button>
+        </div>
       </div>
 
       {/* Invoice document */}
