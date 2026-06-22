@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
-import { CheckCircle2, Package, Truck, Smartphone, Building2 } from "lucide-react";
+import { CheckCircle2, Package, Truck, Smartphone, Building2, X, MessageCircle } from "lucide-react";
+import { BRAND } from "@/lib/format";
 
 export const Route = createFileRoute("/order-confirmation/$id")({
   head: () => ({ meta: [{ title: "Order confirmed — Asif Brothers" }, { name: "robots", content: "noindex" }] }),
@@ -15,6 +16,7 @@ function OrderConfirmation() {
   const [order, setOrder] = useState<any>(null);
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -25,6 +27,9 @@ function OrderConfirmation() {
       setOrder(o);
       setItems(oi ?? []);
       setLoading(false);
+      if (o?.notes && (o.notes.includes("[Payment: BANK]") || o.notes.includes("[Payment: EASYPAISA]") || o.notes.includes("[Payment: JAZZCASH]"))) {
+        setShowPopup(true);
+      }
     })();
   }, [id]);
 
@@ -127,6 +132,32 @@ function OrderConfirmation() {
           <Link to="/shop" className="rounded-md border border-input px-5 py-3 text-sm">Continue shopping</Link>
         </div>
       </section>
+
+      {/* WHATSAPP POPUP MODAL */}
+      {showPopup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md surface-card p-8 rounded-xl shadow-2xl border-copper/50 border-2 animate-in fade-in zoom-in duration-300">
+            <button onClick={() => setShowPopup(false)} className="absolute top-4 right-4 text-muted-foreground hover:text-foreground">
+              <X className="h-5 w-5" />
+            </button>
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20 text-green-500 mb-6">
+              <MessageCircle className="h-8 w-8" />
+            </div>
+            <h2 className="text-display text-2xl text-center mb-3">One last step!</h2>
+            <p className="text-center text-muted-foreground mb-6">
+              To complete your order, please transfer the funds and send the screenshot to our WhatsApp team.
+            </p>
+            <div className="bg-secondary rounded-md p-4 text-sm text-center mb-6">
+              WhatsApp: <span className="font-semibold text-foreground">{BRAND.phone}</span>
+              <br />
+              Order #: <span className="font-mono text-foreground">{order.order_number}</span>
+            </div>
+            <button onClick={() => setShowPopup(false)} className="w-full rounded-md bg-copper px-5 py-3 text-sm font-semibold text-copper-foreground hover:opacity-90 transition">
+              I understand
+            </button>
+          </div>
+        </div>
+      )}
     </SiteLayout>
   );
 }

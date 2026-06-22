@@ -45,12 +45,12 @@ const STATUS_MESSAGES: Record<string, { title: string; desc: string; icon: React
 
 export function OrderStatusNotifier() {
   useEffect(() => {
-    let userId: string | null = null;
+    let isMounted = true;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) return;
-      userId = data.session.user.id;
+      if (!isMounted || !data.session) return;
+      const userId = data.session.user.id;
 
       channel = supabase
         .channel(`order-updates-${userId}`)
@@ -83,6 +83,7 @@ export function OrderStatusNotifier() {
     });
 
     return () => {
+      isMounted = false;
       if (channel) supabase.removeChannel(channel);
     };
   }, []);

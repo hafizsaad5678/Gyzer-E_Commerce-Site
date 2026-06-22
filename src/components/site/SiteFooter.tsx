@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { Mail, Phone, MapPin, Facebook, Instagram, Twitter } from "lucide-react";
-import { BRAND } from "@/lib/format";
+import { Mail, Phone, MapPin, Facebook, Instagram, Twitter, Youtube } from "lucide-react";
+import { useSiteSettings } from "@/lib/settings";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function SiteFooter() {
+  const brand = useSiteSettings();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -26,10 +27,10 @@ export function SiteFooter() {
         <div className="md:col-span-2 space-y-5">
           <div className="flex items-center gap-2.5">
             <span className="thermal-gradient grid h-9 w-9 place-items-center rounded-md text-primary-foreground font-display text-lg font-semibold">A</span>
-            <span className="text-display text-xl">{BRAND.name}</span>
+            <span className="text-display text-xl">{brand.company_name}</span>
           </div>
           <p className="text-sm text-sidebar-foreground/70 max-w-md">
-            {BRAND.tagline}. Reliable electric, gas, instant and solar geysers built for Pakistani homes — backed by warranty and nationwide service.
+            {brand.tagline}. Reliable electric, gas, instant and solar geysers built for Pakistani homes — backed by warranty and nationwide service.
           </p>
           <form onSubmit={subscribe} className="flex max-w-md gap-2">
             <input
@@ -72,15 +73,15 @@ export function SiteFooter() {
       <div className="border-t border-sidebar-border">
         <div className="container-page py-6 flex flex-col md:flex-row items-start md:items-center gap-4 justify-between text-xs text-sidebar-foreground/60">
           <div className="flex flex-wrap gap-x-6 gap-y-2">
-            <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{BRAND.address}</span>
-            <a href={`tel:${BRAND.phone}`} className="inline-flex items-center gap-1.5 hover:text-copper"><Phone className="h-3.5 w-3.5" />{BRAND.phone}</a>
-            <a href={`mailto:${BRAND.email}`} className="inline-flex items-center gap-1.5 hover:text-copper"><Mail className="h-3.5 w-3.5" />{BRAND.email}</a>
+            <span className="inline-flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5" />{brand.address}</span>
+            <a href={`tel:${brand.phone}`} className="inline-flex items-center gap-1.5 hover:text-copper"><Phone className="h-3.5 w-3.5" />{brand.phone}</a>
+            <a href={`mailto:${brand.email}`} className="inline-flex items-center gap-1.5 hover:text-copper"><Mail className="h-3.5 w-3.5" />{brand.email}</a>
           </div>
           <div className="flex items-center gap-4">
             <a href="#" aria-label="Facebook" className="hover:text-copper"><Facebook className="h-4 w-4" /></a>
             <a href="#" aria-label="Instagram" className="hover:text-copper"><Instagram className="h-4 w-4" /></a>
-            <a href="#" aria-label="Twitter" className="hover:text-copper"><Twitter className="h-4 w-4" /></a>
-            <span>© {new Date().getFullYear()} {BRAND.name}</span>
+            <a href="#" aria-label="Youtube" className="hover:text-copper"><Youtube className="h-4 w-4" /></a>
+            <span>© {new Date().getFullYear()} {brand.company_name}</span>
           </div>
         </div>
       </div>

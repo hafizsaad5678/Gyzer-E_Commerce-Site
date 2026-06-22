@@ -21,6 +21,7 @@ const featuredOpts = queryOptions({
       .eq("is_active", true)
       .eq("is_featured", true)
       .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
       .limit(8);
     if (error) throw error;
     return data ?? [];
@@ -40,6 +41,21 @@ const categoriesOpts = queryOptions({
   },
 });
 
+const reviewsOpts = queryOptions({
+  queryKey: ["approved_reviews"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("id,rating,title,body")
+      .eq("is_approved", true)
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: true })
+      .limit(6);
+    if (error) throw error;
+    return data ?? [];
+  },
+});
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -53,6 +69,7 @@ export const Route = createFileRoute("/")({
     await Promise.all([
       context.queryClient.ensureQueryData(featuredOpts),
       context.queryClient.ensureQueryData(categoriesOpts),
+      context.queryClient.ensureQueryData(reviewsOpts),
     ]);
   },
   component: Home,
@@ -68,6 +85,7 @@ const catImg: Record<string, string> = {
 function Home() {
   const { data: featured } = useSuspenseQuery(featuredOpts);
   const { data: categories } = useSuspenseQuery(categoriesOpts);
+  const { data: reviews } = useSuspenseQuery(reviewsOpts);
   const [recentlyViewed, setRecentlyViewed] = useState<RVItem[]>([]);
 
   useEffect(() => {
@@ -161,23 +179,33 @@ function Home() {
 
       {/* TESTIMONIALS */}
       <section className="container-page py-16 md:py-24">
-        <div className="max-w-2xl mb-12">
-          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Reviews</div>
-          <h2 className="text-display text-3xl md:text-4xl">Trusted by 50,000+ Pakistani homes</h2>
+        <div className="flex items-end justify-between mb-12 gap-6">
+          <div className="max-w-2xl">
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Reviews</div>
+            <h2 className="text-display text-3xl md:text-4xl">Trusted by 50,000+ Pakistani homes</h2>
+          </div>
+          <Link to="/write-review" className="text-sm text-copper hover:underline inline-flex items-center gap-1 shrink-0">
+            Write a review <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
-        <div className="grid md:grid-cols-3 gap-5">
-          {[
-            { q: "Survived three Lahore winters with zero issues. The 5-year warranty sealed the deal.", a: "Ayesha K., Lahore" },
-            { q: "Installed the Sahara gas geyser — hot water in 60 seconds, gas bill barely moved.", a: "Bilal R., Karachi" },
-            { q: "Solar system pays for itself. Their installation team was professional and on time.", a: "Hamza M., Islamabad" },
-          ].map((t, i) => (
-            <figure key={i} className="surface-card p-6 space-y-4">
-              <div className="flex gap-1 text-copper">{Array.from({ length: 5 }).map((_, k) => <Star key={k} className="h-4 w-4 fill-current" />)}</div>
-              <blockquote className="text-display text-lg leading-snug">&ldquo;{t.q}&rdquo;</blockquote>
-              <figcaption className="text-xs uppercase tracking-wider text-muted-foreground">{t.a}</figcaption>
-            </figure>
-          ))}
-        </div>
+        
+        {reviews.length === 0 ? (
+          <div className="text-muted-foreground text-sm">No reviews yet.</div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-5">
+            {reviews.map((t) => (
+              <figure key={t.id} className="surface-card p-6 space-y-4 flex flex-col">
+                <div className="flex gap-1 text-copper">
+                  {Array.from({ length: 5 }).map((_, k) => (
+                    <Star key={k} className={`h-4 w-4 ${k < t.rating ? "fill-current" : "opacity-30"}`} />
+                  ))}
+                </div>
+                <blockquote className="text-display text-lg leading-snug flex-1">&ldquo;{t.body}&rdquo;</blockquote>
+                <figcaption className="text-xs uppercase tracking-wider text-muted-foreground">{t.title || "Customer"}</figcaption>
+              </figure>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* CTA */}

@@ -64,7 +64,9 @@ function AdminProducts() {
   }
   async function updateStock(id: string, stock: number) {
     if (Number.isNaN(stock) || stock < 0) return;
-    await supabase.from("products").update({ stock }).eq("id", id);
+    const { error } = await supabase.from("products").update({ stock }).eq("id", id);
+    if (error) toast.error(error.message);
+    else toast.success("Stock updated");
     load();
   }
   async function remove(id: string) {
@@ -139,12 +141,7 @@ function AdminProducts() {
                   <td className="px-4 py-3 text-muted-foreground">{p.categories?.name ?? "—"}</td>
                   <td className="px-4 py-3 text-right">{formatPKR(p.discount_price_pkr ?? p.price_pkr)}</td>
                   <td className="px-4 py-3 text-right">
-                    <input
-                      type="number"
-                      defaultValue={p.stock}
-                      onBlur={(e) => updateStock(p.id, Number(e.target.value))}
-                      className={`w-20 rounded-md border border-input bg-background px-2 py-1 text-sm text-right ${p.stock <= 5 ? "text-destructive font-semibold" : ""}`}
-                    />
+                    <StockInput product={p} onSave={updateStock} />
                   </td>
                   <td className="px-4 py-3 text-center"><Toggle checked={p.is_active} onChange={(v) => toggle(p.id, "is_active", v)} /></td>
                   <td className="px-4 py-3 text-center"><Toggle checked={p.is_featured} onChange={(v) => toggle(p.id, "is_featured", v)} /></td>
@@ -184,6 +181,28 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
     <button onClick={() => onChange(!checked)} className={`relative inline-flex h-5 w-9 items-center rounded-full transition ${checked ? "bg-copper" : "bg-muted"}`}>
       <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition ${checked ? "translate-x-5" : "translate-x-1"}`} />
     </button>
+  );
+}
+
+function StockInput({ product, onSave }: { product: Product; onSave: (id: string, val: number) => void }) {
+  const [val, setVal] = useState(String(product.stock));
+  
+  // Sync if external data changes (like from a purchase or edit modal)
+  useEffect(() => { setVal(String(product.stock)); }, [product.stock]);
+
+  return (
+    <input
+      type="number"
+      value={val}
+      onChange={(e) => setVal(e.target.value)}
+      onBlur={() => {
+        const num = Number(val);
+        if (!Number.isNaN(num) && num !== product.stock) {
+          onSave(product.id, num);
+        }
+      }}
+      className={`w-20 rounded-md border border-input bg-background px-2 py-1 text-sm text-right ${product.stock <= 5 ? "text-destructive font-semibold" : ""}`}
+    />
   );
 }
 

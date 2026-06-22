@@ -125,7 +125,7 @@ function Checkout() {
       const currentStock = i.products.stock ?? 0;
       const newStock = Math.max(0, currentStock - i.quantity);
       
-      await supabase.from("products").update({ stock: newStock }).eq("id", i.products.id);
+      await supabase.rpc("decrement_stock", { p_id: i.products.id, qty: i.quantity });
 
       // Send a persistent system notification to the admin messages board if stock is getting low
       if (currentStock >= 5 && newStock < 5) {
