@@ -280,8 +280,6 @@ function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return <div className="flex justify-between"><dt className="text-muted-foreground">{k}</dt><dd className={accent ? "text-copper font-medium" : ""}>{v}</dd></div>;
 }
 
-type PaymentMethod = "cod" | "easypaisa" | "jazzcash" | "bank" | "card";
-
 function PaymentSelector({ selected, onChange }: { selected: PaymentMethod; onChange: (m: PaymentMethod) => void }) {
   const options: { id: PaymentMethod; label: string; desc: string; icon: React.ReactNode; disabled?: boolean }[] = [
     { id: "cod", label: "Cash on Delivery", desc: "Pay in cash when your geyser arrives.", icon: <Banknote className="h-5 w-5 text-copper mt-0.5" /> },

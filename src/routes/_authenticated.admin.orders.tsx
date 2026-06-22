@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
+import { toast } from "sonner";
 
 const statuses = ["pending","paid","processing","shipped","delivered","cancelled","refunded"] as const;
 
@@ -21,8 +22,34 @@ function AdminOrders() {
   }
   useEffect(() => { load(); }, [filter]);
 
-  async function changeStatus(id: string, status: string) {
-    await supabase.from("orders").update({ status: status as any }).eq("id", id);
+  async function changeStatus(order: any, newStatus: string) {
+    if (order.status === newStatus) return;
+
+    // Update DB
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus as any, updated_at: new Date().toISOString() })
+      .eq("id", order.id);
+
+    if (error) { toast.error("Failed to update status"); return; }
+
+    // Fire email notification (non-blocking)
+    supabase.functions
+      .invoke("send-order-status-email", {
+        body: {
+          to: order.email,
+          customer_name: (order.shipping_address as any)?.full_name ?? null,
+          order_number: order.order_number,
+          order_total: order.total_pkr,
+          status: newStatus,
+          order_id: order.id,
+        },
+      })
+      .then(({ error: fnErr }) => {
+        if (fnErr) console.warn("Email notification failed:", fnErr.message);
+      });
+
+    toast.success(`Order ${order.order_number} → ${newStatus}`);
     load();
   }
 
@@ -59,17 +86,28 @@ function AdminOrders() {
                   <td className="px-4 py-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString("en-PK")}</td>
                   <td className="px-4 py-3 text-right">{formatPKR(o.total_pkr)}</td>
                   <td className="px-4 py-3">
-                    <select value={o.status} onChange={(e) => changeStatus(o.id, e.target.value)} className="rounded-md border border-input bg-background px-2 py-1 text-xs">
+                    <select
+                      value={o.status}
+                      onChange={(e) => changeStatus(o, e.target.value)}
+                      className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                    >
                       {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </td>
                 </tr>
               ))}
-              {orders.length === 0 && <tr><td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No orders yet.</td></tr>}
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No orders yet.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
       </div>
+      <p className="text-xs text-muted-foreground">
+        Status change automatically sends an email notification to the customer via Resend.
+      </p>
     </div>
   );
 }

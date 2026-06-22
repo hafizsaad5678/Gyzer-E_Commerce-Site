@@ -40,6 +40,7 @@ import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated.admin.messages'
 import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated.admin.customers'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated.admin.categories'
+import { Route as AuthenticatedAdminAbandonedCartsRouteImport } from './routes/_authenticated.admin.abandoned-carts'
 import { Route as AuthenticatedAccountWishlistRouteImport } from './routes/_authenticated.account.wishlist'
 import { Route as AuthenticatedAccountPasswordRouteImport } from './routes/_authenticated.account.password'
 import { Route as AuthenticatedAccountOrdersRouteImport } from './routes/_authenticated.account.orders'
@@ -205,6 +206,12 @@ const AuthenticatedAdminCategoriesRoute =
     path: '/categories',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAbandonedCartsRoute =
+  AuthenticatedAdminAbandonedCartsRouteImport.update({
+    id: '/abandoned-carts',
+    path: '/abandoned-carts',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAccountWishlistRoute =
   AuthenticatedAccountWishlistRouteImport.update({
     id: '/wishlist',
@@ -258,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/account/password': typeof AuthenticatedAccountPasswordRoute
   '/account/wishlist': typeof AuthenticatedAccountWishlistRoute
+  '/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -291,6 +299,7 @@ export interface FileRoutesByTo {
   '/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/account/password': typeof AuthenticatedAccountPasswordRoute
   '/account/wishlist': typeof AuthenticatedAccountWishlistRoute
+  '/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -329,6 +338,7 @@ export interface FileRoutesById {
   '/_authenticated/account/orders': typeof AuthenticatedAccountOrdersRoute
   '/_authenticated/account/password': typeof AuthenticatedAccountPasswordRoute
   '/_authenticated/account/wishlist': typeof AuthenticatedAccountWishlistRoute
+  '/_authenticated/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
@@ -367,6 +377,7 @@ export interface FileRouteTypes {
     | '/account/orders'
     | '/account/password'
     | '/account/wishlist'
+    | '/admin/abandoned-carts'
     | '/admin/categories'
     | '/admin/customers'
     | '/admin/messages'
@@ -400,6 +411,7 @@ export interface FileRouteTypes {
     | '/account/orders'
     | '/account/password'
     | '/account/wishlist'
+    | '/admin/abandoned-carts'
     | '/admin/categories'
     | '/admin/customers'
     | '/admin/messages'
@@ -437,6 +449,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/orders'
     | '/_authenticated/account/password'
     | '/_authenticated/account/wishlist'
+    | '/_authenticated/admin/abandoned-carts'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/customers'
     | '/_authenticated/admin/messages'
@@ -688,6 +701,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminCategoriesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/abandoned-carts': {
+      id: '/_authenticated/admin/abandoned-carts'
+      path: '/abandoned-carts'
+      fullPath: '/admin/abandoned-carts'
+      preLoaderRoute: typeof AuthenticatedAdminAbandonedCartsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/account/wishlist': {
       id: '/_authenticated/account/wishlist'
       path: '/wishlist'
@@ -739,6 +759,7 @@ const AuthenticatedAccountRouteWithChildren =
   AuthenticatedAccountRoute._addFileChildren(AuthenticatedAccountRouteChildren)
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAbandonedCartsRoute: typeof AuthenticatedAdminAbandonedCartsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCustomersRoute: typeof AuthenticatedAdminCustomersRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
@@ -748,6 +769,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAbandonedCartsRoute: AuthenticatedAdminAbandonedCartsRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCustomersRoute: AuthenticatedAdminCustomersRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
