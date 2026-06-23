@@ -166,29 +166,30 @@ function Home() {
             All <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {categories.map((c) => (
             <Link
               key={c.id}
               to="/categories/$slug"
               params={{ slug: c.slug }}
-              className="surface-card overflow-hidden group hover:shadow-[var(--shadow-elevated)] transition-all"
+              className="surface-card overflow-hidden group hover:shadow-[var(--shadow-elevated)] transition-all hover:-translate-y-1"
             >
-              <div className="aspect-[4/3] bg-steel/40 overflow-hidden">
+              <div className="aspect-[4/3] bg-steel/40 overflow-hidden relative">
                 <img
                   src={catImg[c.slug]}
                   alt={c.name}
                   loading="lazy"
                   width={800}
                   height={600}
-                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               </div>
-              <div className="p-5">
-                <h3 className="text-display text-xl mb-1.5 group-hover:text-copper transition-colors">
+              <div className="p-6 relative bg-card">
+                <h3 className="text-display text-2xl mb-2 group-hover:text-copper transition-colors">
                   {c.name}
                 </h3>
-                <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-2">{c.description}</p>
               </div>
             </Link>
           ))}
@@ -212,8 +213,8 @@ function Home() {
               Shop all <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {featured.map((p: any) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {featured.slice(0, 6).map((p: any) => (
               <ProductCard
                 key={p.id}
                 p={p as ProductCardData}
@@ -246,22 +247,25 @@ function Home() {
         {reviews.length === 0 ? (
           <div className="text-muted-foreground text-sm">No reviews yet.</div>
         ) : (
-          <div className="grid md:grid-cols-3 gap-5">
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {reviews.map((t) => (
-              <figure key={t.id} className="surface-card p-6 space-y-4 flex flex-col">
-                <div className="flex gap-1 text-copper">
+              <figure key={t.id} className="surface-card p-8 space-y-6 flex flex-col relative overflow-hidden group hover:-translate-y-1 transition-transform duration-500 hover:shadow-[var(--shadow-elevated)]">
+                <div className="absolute inset-0 thermal-gradient opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500" />
+                <div className="flex gap-1.5 text-copper relative z-10">
                   {Array.from({ length: 5 }).map((_, k) => (
                     <Star
                       key={k}
-                      className={`h-4 w-4 ${k < t.rating ? "fill-current" : "opacity-30"}`}
+                      className={`h-5 w-5 ${k < t.rating ? "fill-current" : "opacity-20"}`}
                     />
                   ))}
                 </div>
-                <blockquote className="text-display text-lg leading-snug flex-1">
+                <blockquote className="text-display text-xl leading-relaxed flex-1 text-foreground/90 relative z-10">
                   &ldquo;{t.body}&rdquo;
                 </blockquote>
-                <figcaption className="text-xs uppercase tracking-wider text-muted-foreground">
-                  {t.title || "Customer"}
+                <figcaption className="pt-5 border-t border-border/60 relative z-10">
+                  <div className="text-xs uppercase tracking-widest font-bold text-copper">
+                    {t.title || "Customer"}
+                  </div>
                 </figcaption>
               </figure>
             ))}
@@ -290,24 +294,7 @@ function Home() {
         </div>
       </section>
 
-      {/* RECENTLY VIEWED */}
-      {recentlyViewed.length > 0 && (
-        <section className="container-page pb-20">
-          <div className="flex items-end justify-between mb-10 gap-6">
-            <div>
-              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
-                Your history
-              </div>
-              <h2 className="text-display text-3xl md:text-4xl">Recently viewed</h2>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {recentlyViewed.map((p) => (
-              <ProductCard key={p.id} p={p} />
-            ))}
-          </div>
-        </section>
-      )}
+
     </SiteLayout>
   );
 }
