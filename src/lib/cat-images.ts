@@ -8,8 +8,8 @@ import imgInstant from "@/assets/product-instant.jpg";
 import imgSolar from "@/assets/product-solar.jpg";
 
 export const catImg: Record<string, string> = {
-  electric: imgElectric,
-  gas: imgGas,
-  instant: imgInstant,
-  solar: imgSolar,
+ electric: imgElectric,
+ gas: imgGas,
+ instant: imgInstant,
+ solar: imgSolar,
 };
