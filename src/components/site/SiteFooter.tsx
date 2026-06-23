@@ -35,7 +35,7 @@ export function SiteFooter() {
  </div>
  <p className="text-sm text-sidebar-foreground/70 max-w-md">
  {brand.tagline}. Reliable electric, gas, instant and solar geysers built for Pakistani
- homes — backed by warranty and nationwide service.
+ homes backed by warranty and nationwide service.
  </p>
  <form onSubmit={subscribe} className="flex max-w-md gap-2">
  <input
