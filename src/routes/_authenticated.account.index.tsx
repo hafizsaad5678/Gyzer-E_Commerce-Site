@@ -44,25 +44,55 @@ function Profile() {
   return (
     <div className="surface-card p-6 md:p-8 max-w-xl">
       <h2 className="text-display text-2xl mb-1">Your profile</h2>
-      <p className="text-sm text-muted-foreground mb-6">Keep this up to date so we can reach you about your orders.</p>
+      <p className="text-sm text-muted-foreground mb-6">
+        Keep this up to date so we can reach you about your orders.
+      </p>
       <form onSubmit={save} className="space-y-4">
         <Field label="Full name" name="full_name" defaultValue={profile.full_name ?? ""} />
-        <Field label="Phone" name="phone" defaultValue={profile.phone ?? ""} placeholder="+92 300 0000000" />
+        <Field
+          label="Phone"
+          name="phone"
+          defaultValue={profile.phone ?? ""}
+          placeholder="+92 300 0000000"
+        />
         <div>
-          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">Email</label>
-          <input value={email} readOnly className="w-full rounded-md border border-input bg-secondary/50 px-3 py-2.5 text-sm text-muted-foreground" />
+          <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+            Email
+          </label>
+          <input
+            value={email}
+            readOnly
+            className="w-full rounded-md border border-input bg-secondary/50 px-3 py-2.5 text-sm text-muted-foreground"
+          />
         </div>
-        <button disabled={loading} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">{loading ? "Saving…" : "Save changes"}</button>
+        <button
+          disabled={loading}
+          className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+        >
+          {loading ? "Saving…" : "Save changes"}
+        </button>
       </form>
     </div>
   );
 }
 
-function Field(props: { label: string; name: string; defaultValue?: string; placeholder?: string }) {
+function Field(props: {
+  label: string;
+  name: string;
+  defaultValue?: string;
+  placeholder?: string;
+}) {
   return (
     <div>
-      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">{props.label}</label>
-      <input name={props.name} defaultValue={props.defaultValue} placeholder={props.placeholder} className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm" />
+      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+        {props.label}
+      </label>
+      <input
+        name={props.name}
+        defaultValue={props.defaultValue}
+        placeholder={props.placeholder}
+        className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+      />
     </div>
   );
 }

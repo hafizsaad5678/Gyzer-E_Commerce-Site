@@ -23,15 +23,17 @@ function WriteReview() {
       return;
     }
     setLoading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+
     const { error } = await supabase.from("reviews").insert({
       user_id: session?.user?.id ?? null,
       title: form.customer_name,
       rating: form.rating,
       body: form.comment,
     });
-    
+
     setLoading(false);
     if (error) {
       toast.error(error.message);
@@ -45,9 +47,13 @@ function WriteReview() {
     <SiteLayout>
       <section className="container-page py-16 max-w-2xl">
         <div className="mb-10 text-center">
-          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Feedback</div>
+          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+            Feedback
+          </div>
           <h1 className="text-display text-4xl">Write a Review</h1>
-          <p className="text-muted-foreground mt-2">Share your experience with our products and service.</p>
+          <p className="text-muted-foreground mt-2">
+            Share your experience with our products and service.
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="surface-card p-6 md:p-8 space-y-6">
@@ -63,12 +69,12 @@ function WriteReview() {
                   onMouseLeave={() => setHoverRating(0)}
                   className="p-1 focus:outline-none transition-transform hover:scale-110"
                 >
-                  <Star 
+                  <Star
                     className={`h-8 w-8 transition-colors ${
-                      star <= (hoverRating || form.rating) 
-                        ? "fill-copper text-copper" 
+                      star <= (hoverRating || form.rating)
+                        ? "fill-copper text-copper"
                         : "text-muted-foreground/30"
-                    }`} 
+                    }`}
                   />
                 </button>
               ))}
@@ -77,31 +83,31 @@ function WriteReview() {
 
           <label className="block">
             <span className="block text-sm font-medium mb-1.5">Your Name</span>
-            <input 
-              type="text" 
-              required 
+            <input
+              type="text"
+              required
               placeholder="e.g. Bilal R."
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              value={form.customer_name} 
-              onChange={e => setForm({ ...form, customer_name: e.target.value })} 
+              value={form.customer_name}
+              onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
             />
           </label>
 
           <label className="block">
             <span className="block text-sm font-medium mb-1.5">Your Review</span>
-            <textarea 
-              required 
+            <textarea
+              required
               rows={4}
               placeholder="How was the product? How was the installation and service?"
               className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm resize-none"
-              value={form.comment} 
-              onChange={e => setForm({ ...form, comment: e.target.value })} 
+              value={form.comment}
+              onChange={(e) => setForm({ ...form, comment: e.target.value })}
             />
           </label>
 
-          <button 
-            disabled={loading} 
-            type="submit" 
+          <button
+            disabled={loading}
+            type="submit"
             className="w-full rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
           >
             {loading ? "Submitting..." : "Submit Review"}

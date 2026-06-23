@@ -19,7 +19,11 @@ export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
       { title: "Contact Asif Brothers — Sales & Support" },
-      { name: "description", content: "Get in touch with Asif Brothers for sales, installation quotes, or warranty service. Lahore, Karachi, Islamabad and more." },
+      {
+        name: "description",
+        content:
+          "Get in touch with Asif Brothers for sales, installation quotes, or warranty service. Lahore, Karachi, Islamabad and more.",
+      },
     ],
   }),
   component: Contact,
@@ -44,9 +48,13 @@ function Contact() {
     <SiteLayout>
       <section className="container-page py-12 md:py-16">
         <div className="max-w-2xl">
-          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Contact</div>
+          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+            Contact
+          </div>
           <h1 className="text-display text-4xl md:text-5xl mb-3">Let's talk hot water.</h1>
-          <p className="text-muted-foreground">Sales, installation quotes, warranty service — our team replies within one business day.</p>
+          <p className="text-muted-foreground">
+            Sales, installation quotes, warranty service — our team replies within one business day.
+          </p>
         </div>
 
         <div className="mt-12 grid lg:grid-cols-[1fr_400px] gap-10">
@@ -60,17 +68,43 @@ function Contact() {
               <Field label="Subject" name="subject" />
             </div>
             <div>
-              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">Message</label>
-              <textarea name="message" rows={6} required className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+                Message
+              </label>
+              <textarea
+                name="message"
+                rows={6}
+                required
+                className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
             </div>
-            <button disabled={loading} className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60">
+            <button
+              disabled={loading}
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-60"
+            >
               <MessageSquare className="h-4 w-4" /> {loading ? "Sending..." : "Send message"}
             </button>
           </form>
 
           <aside className="space-y-4">
-            <Info icon={Phone} title="Call us" body={<a href={`tel:${BRAND.phone}`} className="hover:text-copper">{BRAND.phone}</a>} />
-            <Info icon={Mail} title="Email" body={<a href={`mailto:${BRAND.email}`} className="hover:text-copper">{BRAND.email}</a>} />
+            <Info
+              icon={Phone}
+              title="Call us"
+              body={
+                <a href={`tel:${BRAND.phone}`} className="hover:text-copper">
+                  {BRAND.phone}
+                </a>
+              }
+            />
+            <Info
+              icon={Mail}
+              title="Email"
+              body={
+                <a href={`mailto:${BRAND.email}`} className="hover:text-copper">
+                  {BRAND.email}
+                </a>
+              }
+            />
             <Info icon={MapPin} title="Head office" body={BRAND.address} />
             <div className="surface-card overflow-hidden">
               <iframe
@@ -87,18 +121,38 @@ function Contact() {
   );
 }
 
-function Field({ label, name, type = "text", required = false }: { label: string; name: string; type?: string; required?: boolean }) {
+function Field({
+  label,
+  name,
+  type = "text",
+  required = false,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+}) {
   return (
     <div>
-      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">{label}{required && <span className="text-copper"> *</span>}</label>
-      <input type={type} name={name} required={required} className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+      <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2 block">
+        {label}
+        {required && <span className="text-copper"> *</span>}
+      </label>
+      <input
+        type={type}
+        name={name}
+        required={required}
+        className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+      />
     </div>
   );
 }
 function Info({ icon: Icon, title, body }: { icon: any; title: string; body: React.ReactNode }) {
   return (
     <div className="surface-card p-5 flex gap-4">
-      <div className="grid h-10 w-10 place-items-center rounded-md bg-accent text-copper shrink-0"><Icon className="h-4 w-4" /></div>
+      <div className="grid h-10 w-10 place-items-center rounded-md bg-accent text-copper shrink-0">
+        <Icon className="h-4 w-4" />
+      </div>
       <div>
         <div className="text-xs uppercase tracking-wider text-muted-foreground">{title}</div>
         <div className="text-sm mt-1">{body}</div>

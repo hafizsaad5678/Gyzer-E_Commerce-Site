@@ -41,7 +41,10 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
   // Debounced search
   useEffect(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
-    if (!q.trim()) { setResults([]); return; }
+    if (!q.trim()) {
+      setResults([]);
+      return;
+    }
     timerRef.current = setTimeout(async () => {
       setLoading(true);
       const { data } = await supabase
@@ -53,7 +56,9 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
       setResults(data ?? []);
       setLoading(false);
     }, 280);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [q]);
 
   if (!open) return null;
@@ -87,7 +92,11 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
           {loading ? (
             <Loader2 className="h-4 w-4 text-muted-foreground animate-spin shrink-0" />
           ) : q ? (
-            <button onClick={() => setQ("")} className="text-muted-foreground hover:text-foreground" aria-label="Clear">
+            <button
+              onClick={() => setQ("")}
+              className="text-muted-foreground hover:text-foreground"
+              aria-label="Clear"
+            >
               <X className="h-4 w-4" />
             </button>
           ) : null}
@@ -108,16 +117,24 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
                   >
                     <div className="h-11 w-11 rounded-md bg-steel/40 overflow-hidden shrink-0">
                       {p.cover_image_url ? (
-                        <img src={p.cover_image_url} alt={p.name} className="h-full w-full object-cover" />
+                        <img
+                          src={p.cover_image_url}
+                          alt={p.name}
+                          className="h-full w-full object-cover"
+                        />
                       ) : (
-                        <div className="h-full w-full grid place-items-center text-[9px] text-muted-foreground">No img</div>
+                        <div className="h-full w-full grid place-items-center text-[9px] text-muted-foreground">
+                          No img
+                        </div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm font-medium truncate">{p.name}</div>
                       {p.brand && <div className="text-xs text-muted-foreground">{p.brand}</div>}
                     </div>
-                    <div className="text-sm font-semibold text-foreground shrink-0">{formatPKR(price)}</div>
+                    <div className="text-sm font-semibold text-foreground shrink-0">
+                      {formatPKR(price)}
+                    </div>
                   </Link>
                 </li>
               );
@@ -134,7 +151,13 @@ export function SearchModal({ open, onClose }: { open: boolean; onClose: () => v
 
         {/* Footer */}
         <div className="px-4 py-2.5 border-t border-border bg-secondary/30 flex items-center justify-between text-xs text-muted-foreground">
-          <span>Press <kbd className="mx-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">Esc</kbd> to close</span>
+          <span>
+            Press{" "}
+            <kbd className="mx-1 rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[10px]">
+              Esc
+            </kbd>{" "}
+            to close
+          </span>
           {q.trim() && (
             <Link
               to="/shop"

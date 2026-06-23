@@ -79,11 +79,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Asif Brothers — Premium Geysers for Pakistan" },
-      { name: "description", content: "Electric, gas, instant and solar geysers from Asif Brothers. Engineered for Pakistani homes, backed by warranty and nationwide service." },
+      {
+        name: "description",
+        content:
+          "Electric, gas, instant and solar geysers from Asif Brothers. Engineered for Pakistani homes, backed by warranty and nationwide service.",
+      },
       { name: "author", content: "Asif Brothers" },
       { name: "theme-color", content: "#1c2c40" },
       { property: "og:title", content: "Asif Brothers — Premium Geysers for Pakistan" },
-      { property: "og:description", content: "Electric, gas, instant and solar geysers engineered for Pakistani homes." },
+      {
+        property: "og:description",
+        content: "Electric, gas, instant and solar geysers engineered for Pakistani homes.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -122,7 +129,7 @@ function RootComponent() {
       {isLoading && (
         <div className="fixed top-0 left-0 right-0 z-50 h-1 w-full bg-copper shadow-[0_0_10px_var(--color-copper)] animate-pulse" />
       )}
-      
+
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

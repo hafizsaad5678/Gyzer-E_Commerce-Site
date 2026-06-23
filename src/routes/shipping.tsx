@@ -18,9 +18,15 @@ export const Route = createFileRoute("/shipping")({
         <li>Orders over Rs 50,000: FREE</li>
       </ul>
       <h2>Installation</h2>
-      <p>Installation is a separate service quoted after delivery (or pre-booked at checkout in select cities). Standard installation Rs 5,000–15,000 depending on plumbing complexity.</p>
+      <p>
+        Installation is a separate service quoted after delivery (or pre-booked at checkout in
+        select cities). Standard installation Rs 5,000–15,000 depending on plumbing complexity.
+      </p>
       <h2>Order tracking</h2>
-      <p>You'll receive an SMS/email with a tracking link once your order ships. You can also view tracking from your account dashboard.</p>
+      <p>
+        You'll receive an SMS/email with a tracking link once your order ships. You can also view
+        tracking from your account dashboard.
+      </p>
     </PolicyPage>
   ),
 });

@@ -47,12 +47,12 @@ graph TD
 ```
 
 Key architectural decisions:
+
 - **SSR loaders** (`loader` in `createFileRoute`) pre-fetch critical data via `queryClient.ensureQueryData`.
 - **Edge Functions** handle all server-side secrets (payment keys, email API keys, VAPID keys for push).
 - **Realtime subscriptions** (`supabase.channel`) power live order-status updates on the tracking page.
 - **localStorage** is used for guest "recently viewed" and "compare" state; synced to DB for logged-in users.
 - **Full-text search** uses Postgres `tsvector` / `websearch_to_tsquery` on the `products` table.
-
 
 ---
 
@@ -183,7 +183,6 @@ ALTER TABLE product_images
 ALTER TYPE payment_status ADD VALUE IF NOT EXISTS 'processing';
 ```
 
-
 ---
 
 ## Feature 1 & 2: Product Search with Autocomplete + Advanced Filters
@@ -218,31 +217,31 @@ sequenceDiagram
 ```typescript
 // Search & filter params (validated with Zod in route definition)
 interface ShopSearchParams {
-  q?: string           // free-text query
-  brand?: string       // comma-separated brands
-  type?: string        // 'electric' | 'gas' | 'solar' | 'instant'
-  minPrice?: number
-  maxPrice?: number
-  capacity?: number    // exact liters
-  sort?: 'price_asc' | 'price_desc' | 'newest' | 'relevance'
-  page?: number
+  q?: string; // free-text query
+  brand?: string; // comma-separated brands
+  type?: string; // 'electric' | 'gas' | 'solar' | 'instant'
+  minPrice?: number;
+  maxPrice?: number;
+  capacity?: number; // exact liters
+  sort?: "price_asc" | "price_desc" | "newest" | "relevance";
+  page?: number;
 }
 
 interface SearchSuggestion {
-  id: string
-  name: string
-  brand: string | null
-  slug: string
-  cover_image_url: string | null
-  price_pkr: number
-  discount_price_pkr: number | null
+  id: string;
+  name: string;
+  brand: string | null;
+  slug: string;
+  cover_image_url: string | null;
+  price_pkr: number;
+  discount_price_pkr: number | null;
 }
 
 interface ProductSearchResult {
-  items: SearchSuggestion[]
-  total: number
-  page: number
-  pageSize: number
+  items: SearchSuggestion[];
+  total: number;
+  page: number;
+  pageSize: number;
 }
 ```
 
@@ -257,26 +256,21 @@ interface ProductSearchResult {
  * Postconditions: returned function delays fn call by `delay` ms,
  *                 cancels any pending call when invoked again
  */
-function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T
+function debounce<T extends (...args: any[]) => void>(fn: T, delay: number): T;
 
 /**
  * Fetch autocomplete suggestions from Postgres full-text search.
  * Preconditions: query.length >= 2
  * Postconditions: returns at most `limit` results ranked by ts_rank
  */
-async function fetchSuggestions(
-  query: string,
-  limit = 6
-): Promise<SearchSuggestion[]>
+async function fetchSuggestions(query: string, limit = 6): Promise<SearchSuggestion[]>;
 
 /**
  * Fetch paginated filtered products.
  * Preconditions: filters is a valid ShopSearchParams object
  * Postconditions: returns ProductSearchResult with total count for pagination
  */
-async function fetchProducts(
-  filters: ShopSearchParams
-): Promise<ProductSearchResult>
+async function fetchProducts(filters: ShopSearchParams): Promise<ProductSearchResult>;
 ```
 
 ### Supabase RPC (SQL)
@@ -319,7 +313,6 @@ shop.tsx (route)
     └── ProductCard[]
 ```
 
-
 ---
 
 ## Feature 3: Order Tracking Page
@@ -352,20 +345,20 @@ sequenceDiagram
 
 ```typescript
 interface OrderTimeline {
-  status: OrderStatus
-  label: string         // 'Order Placed' | 'Processing' | 'Shipped' | 'Delivered'
-  timestamp: string | null
-  isCurrent: boolean
-  isCompleted: boolean
+  status: OrderStatus;
+  label: string; // 'Order Placed' | 'Processing' | 'Shipped' | 'Delivered'
+  timestamp: string | null;
+  isCurrent: boolean;
+  isCompleted: boolean;
 }
 
 interface TrackingPageData {
-  order: Order
-  items: OrderItem[]
-  timeline: OrderTimeline[]
-  estimatedDelivery: string | null
-  trackingNumber: string | null
-  trackingCarrier: string | null
+  order: Order;
+  items: OrderItem[];
+  timeline: OrderTimeline[];
+  estimatedDelivery: string | null;
+  trackingNumber: string | null;
+  trackingCarrier: string | null;
 }
 ```
 
@@ -380,7 +373,7 @@ interface TrackingPageData {
  * Postconditions: returns array of 5 steps in chronological order,
  *                 exactly one step has isCurrent=true unless cancelled
  */
-function buildTimeline(order: Order): OrderTimeline[]
+function buildTimeline(order: Order): OrderTimeline[];
 
 /**
  * Subscribe to realtime order status changes.
@@ -391,8 +384,8 @@ function buildTimeline(order: Order): OrderTimeline[]
  */
 function subscribeToOrderStatus(
   orderId: string,
-  callback: (newStatus: OrderStatus) => void
-): RealtimeChannel
+  callback: (newStatus: OrderStatus) => void,
+): RealtimeChannel;
 ```
 
 ### Component Tree
@@ -428,26 +421,26 @@ starts for a blocking user-triggered action. The PDF is streamed as a Blob URL a
 
 ```typescript
 interface InvoiceData {
-  orderNumber: string
-  orderDate: string
-  customerName: string
-  customerEmail: string
-  shippingAddress: ShippingAddress
-  items: InvoiceLineItem[]
-  subtotal: number
-  discount: number
-  shipping: number
-  total: number
-  paymentMethod: string
-  invoiceNumber: string   // = 'INV-' + orderNumber
+  orderNumber: string;
+  orderDate: string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: ShippingAddress;
+  items: InvoiceLineItem[];
+  subtotal: number;
+  discount: number;
+  shipping: number;
+  total: number;
+  paymentMethod: string;
+  invoiceNumber: string; // = 'INV-' + orderNumber
 }
 
 interface InvoiceLineItem {
-  sku: string
-  name: string
-  quantity: number
-  unitPrice: number
-  subtotal: number
+  sku: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  subtotal: number;
 }
 ```
 
@@ -462,7 +455,7 @@ interface InvoiceLineItem {
  * Postconditions: returns a @react-pdf/renderer Document element
  *                 with Asif Brothers branding, all line items, and totals
  */
-function InvoiceDocument(props: { data: InvoiceData }): JSX.Element
+function InvoiceDocument(props: { data: InvoiceData }): JSX.Element;
 
 // src/lib/invoice.ts
 
@@ -472,15 +465,15 @@ function InvoiceDocument(props: { data: InvoiceData }): JSX.Element
  * Postconditions: triggers browser download of 'Invoice-{orderNumber}.pdf'
  *                 no server calls made — pure client computation
  */
-async function downloadInvoice(orderId: string): Promise<void>
+async function downloadInvoice(orderId: string): Promise<void>;
 ```
 
 ### Integration Point
 
 Added as a button on:
+
 - `src/routes/order-confirmation.$id.tsx` — "Download Invoice" button
 - `src/routes/_authenticated.account.orders.tsx` — per-order row action
-
 
 ---
 
@@ -528,26 +521,26 @@ supabase/functions/
 ```typescript
 // Sent from checkout to initiate-payment Edge Function
 interface InitiatePaymentRequest {
-  orderId: string
-  method: 'easypaisa' | 'jazzcash' | 'bank_transfer'
-  phone?: string      // required for EasyPaisa/JazzCash
-  amount: number      // in PKR
+  orderId: string;
+  method: "easypaisa" | "jazzcash" | "bank_transfer";
+  phone?: string; // required for EasyPaisa/JazzCash
+  amount: number; // in PKR
 }
 
 interface InitiatePaymentResponse {
-  transactionId: string
-  instructions: string
-  requiresPolling: boolean
+  transactionId: string;
+  instructions: string;
+  requiresPolling: boolean;
 }
 
 // Bank transfer submission
 interface BankTransferSubmission {
-  orderId: string
-  bankName: string
-  accountTitle: string
-  transactionRef: string
-  transferDate: string
-  screenshotUrl?: string  // uploaded to Supabase Storage
+  orderId: string;
+  bankName: string;
+  accountTitle: string;
+  transactionRef: string;
+  transferDate: string;
+  screenshotUrl?: string; // uploaded to Supabase Storage
 }
 ```
 
@@ -556,28 +549,34 @@ interface BankTransferSubmission {
 ```typescript
 // initiate-payment/index.ts
 async function handler(req: Request): Promise<Response> {
-  const { orderId, method, phone, amount } = await req.json()
+  const { orderId, method, phone, amount } = await req.json();
 
   // Validate order ownership via JWT in Authorization header
-  const user = await verifyAuth(req)
-  const order = await getOrder(orderId)
-  if (order.user_id !== user.id) return forbidden()
+  const user = await verifyAuth(req);
+  const order = await getOrder(orderId);
+  if (order.user_id !== user.id) return forbidden();
 
-  if (method === 'easypaisa') {
-    const result = await easypaisaSTKPush({ phone, amount, orderId })
-    await createTransaction({ orderId, method, providerRef: result.transactionId, amount })
-    return json({ transactionId: result.transactionId, instructions: 'Check your Easypaisa app to confirm payment.' })
+  if (method === "easypaisa") {
+    const result = await easypaisaSTKPush({ phone, amount, orderId });
+    await createTransaction({ orderId, method, providerRef: result.transactionId, amount });
+    return json({
+      transactionId: result.transactionId,
+      instructions: "Check your Easypaisa app to confirm payment.",
+    });
   }
 
-  if (method === 'jazzcash') {
-    const result = await jazzcashMWalletPush({ phone, amount, orderId })
-    await createTransaction({ orderId, method, providerRef: result.txnRefNo, amount })
-    return json({ transactionId: result.txnRefNo, instructions: 'Check your JazzCash app to confirm payment.' })
+  if (method === "jazzcash") {
+    const result = await jazzcashMWalletPush({ phone, amount, orderId });
+    await createTransaction({ orderId, method, providerRef: result.txnRefNo, amount });
+    return json({
+      transactionId: result.txnRefNo,
+      instructions: "Check your JazzCash app to confirm payment.",
+    });
   }
 
-  if (method === 'bank_transfer') {
-    await createTransaction({ orderId, method, amount, status: 'processing' })
-    return json({ transactionId: orderId, instructions: BANK_TRANSFER_INSTRUCTIONS })
+  if (method === "bank_transfer") {
+    await createTransaction({ orderId, method, amount, status: "processing" });
+    return json({ transactionId: orderId, instructions: BANK_TRANSFER_INSTRUCTIONS });
   }
 }
 ```
@@ -589,13 +588,13 @@ Replace the current "Card payment (coming soon)" block with:
 ```typescript
 // New payment options rendered in checkout
 const PAYMENT_METHODS = [
-  { id: 'cod',           label: 'Cash on Delivery',   icon: Banknote,    available: true },
-  { id: 'easypaisa',     label: 'EasyPaisa',           icon: Smartphone,  available: true },
-  { id: 'jazzcash',      label: 'JazzCash',            icon: Smartphone,  available: true },
-  { id: 'bank_transfer', label: 'Bank Transfer',        icon: Building2,   available: true },
-] as const
+  { id: "cod", label: "Cash on Delivery", icon: Banknote, available: true },
+  { id: "easypaisa", label: "EasyPaisa", icon: Smartphone, available: true },
+  { id: "jazzcash", label: "JazzCash", icon: Smartphone, available: true },
+  { id: "bank_transfer", label: "Bank Transfer", icon: Building2, available: true },
+] as const;
 
-type PaymentMethodId = typeof PAYMENT_METHODS[number]['id']
+type PaymentMethodId = (typeof PAYMENT_METHODS)[number]["id"];
 ```
 
 For `easypaisa`/`jazzcash`: show a phone number input field below the selector.
@@ -609,7 +608,6 @@ Account Title: Asif Brothers Pvt Ltd
 Account No: 0123-0123456789
 IBAN: PK36MEZN0001230123456789
 ```
-
 
 ---
 
@@ -629,13 +627,13 @@ are selected.
 
 ```typescript
 interface CompareState {
-  ids: string[]   // max 3 product IDs
+  ids: string[]; // max 3 product IDs
 }
 
 interface CompareRow {
-  key: string
-  label: string
-  values: (string | number | null)[]
+  key: string;
+  label: string;
+  values: (string | number | null)[];
 }
 ```
 
@@ -652,12 +650,12 @@ interface CompareRow {
  *   - removeProduct is a no-op when id not in ids
  */
 function useCompare(): {
-  ids: string[]
-  addProduct(id: string): void
-  removeProduct(id: string): void
-  clearAll(): void
-  canAdd: boolean
-}
+  ids: string[];
+  addProduct(id: string): void;
+  removeProduct(id: string): void;
+  clearAll(): void;
+  canAdd: boolean;
+};
 
 // src/lib/compare.ts
 
@@ -667,7 +665,7 @@ function useCompare(): {
  * Postconditions: returns rows for: price, brand, capacity, warranty,
  *                 energy_rating, geyser_type, plus each spec key
  */
-function buildCompareRows(products: Product[]): CompareRow[]
+function buildCompareRows(products: Product[]): CompareRow[];
 ```
 
 ### Component Tree
@@ -687,7 +685,6 @@ CompareBar  (fixed bottom bar, shown when ids.length >= 1)
 ├── "Compare (N)" button → navigates to /compare
 └── Clear button
 ```
-
 
 ---
 
@@ -712,14 +709,14 @@ CompareBar  (fixed bottom bar, shown when ids.length >= 1)
  *   - For logged-in: upserts recently_viewed row, updates viewed_at
  *   - productId appears exactly once in the list
  */
-async function recordView(productId: string): Promise<void>
+async function recordView(productId: string): Promise<void>;
 
 /**
  * Fetch recently viewed products for display.
  * Postconditions: returns up to 8 products ordered by most recent first
  *                 empty array if no history exists
  */
-async function fetchRecentlyViewed(): Promise<ProductCardData[]>
+async function fetchRecentlyViewed(): Promise<ProductCardData[]>;
 ```
 
 ### Integration Points
@@ -765,26 +762,26 @@ async function computeAssociations() {
     AND order_id IN (
       SELECT id FROM orders WHERE created_at > now() - interval '90 days'
     )
-  `)
+  `);
 
-  const counts = new Map<string, number>()
+  const counts = new Map<string, number>();
 
   for (const { products } of orders) {
     // Generate all unique pairs
     for (let i = 0; i < products.length; i++) {
       for (let j = i + 1; j < products.length; j++) {
-        const key = [products[i], products[j]].sort().join('|')
-        counts.set(key, (counts.get(key) ?? 0) + 1)
+        const key = [products[i], products[j]].sort().join("|");
+        counts.set(key, (counts.get(key) ?? 0) + 1);
       }
     }
   }
 
   // Upsert into product_associations
   const rows = [...counts.entries()].map(([key, count]) => {
-    const [a, b] = key.split('|')
-    return { product_a_id: a, product_b_id: b, co_purchase_count: count }
-  })
-  await db.upsert('product_associations', rows, { onConflict: 'product_a_id,product_b_id' })
+    const [a, b] = key.split("|");
+    return { product_a_id: a, product_b_id: b, co_purchase_count: count };
+  });
+  await db.upsert("product_associations", rows, { onConflict: "product_a_id,product_b_id" });
 }
 ```
 
@@ -796,9 +793,8 @@ add `<FrequentlyBoughtTogether productId={p.id} />` component. Query:
 ```typescript
 // queryKey: ['fbt', productId]
 // Fetch top 3 associated products, join product details
-async function fetchFBT(productId: string): Promise<ProductCardData[]>
+async function fetchFBT(productId: string): Promise<ProductCardData[]>;
 ```
-
 
 ---
 
@@ -842,29 +838,29 @@ Also promote the existing simple `_authenticated.admin.index.tsx` to link to `/a
 
 ```typescript
 interface AnalyticsFilters {
-  from: string   // ISO date
-  to: string
+  from: string; // ISO date
+  to: string;
 }
 
 interface RevenueDataPoint {
-  date: string       // 'YYYY-MM-DD'
-  revenue: number
-  orders: number
+  date: string; // 'YYYY-MM-DD'
+  revenue: number;
+  orders: number;
 }
 
 interface TopProduct {
-  productId: string
-  name: string
-  unitsSold: number
-  revenue: number
+  productId: string;
+  name: string;
+  unitsSold: number;
+  revenue: number;
 }
 
 interface KPISnapshot {
-  totalRevenue: number
-  totalOrders: number
-  averageOrderValue: number
-  newCustomers: number
-  abandonedCarts: number
+  totalRevenue: number;
+  totalOrders: number;
+  averageOrderValue: number;
+  newCustomers: number;
+  abandonedCarts: number;
 }
 ```
 
@@ -903,26 +899,19 @@ $$;
 
 ```typescript
 // src/components/admin/RevenueChart.tsx
-function RevenueChart(props: {
-  data: RevenueDataPoint[]
-  height?: number
-}): JSX.Element
+function RevenueChart(props: { data: RevenueDataPoint[]; height?: number }): JSX.Element;
 
 // src/components/admin/TopProductsChart.tsx
-function TopProductsChart(props: {
-  data: TopProduct[]
-  height?: number
-}): JSX.Element
+function TopProductsChart(props: { data: TopProduct[]; height?: number }): JSX.Element;
 
 // src/components/admin/KPICard.tsx
 function KPICard(props: {
-  label: string
-  value: string | number
-  trend?: number     // percent change vs previous period
-  icon: LucideIcon
-}): JSX.Element
+  label: string;
+  value: string | number;
+  trend?: number; // percent change vs previous period
+  icon: LucideIcon;
+}): JSX.Element;
 ```
-
 
 ---
 
@@ -952,11 +941,11 @@ sequenceDiagram
 // supabase/functions/cart-reminders/index.ts
 
 interface AbandonedCart {
-  userId: string
-  email: string
-  fullName: string | null
-  items: { name: string; price: number; imageUrl: string }[]
-  cartValue: number
+  userId: string;
+  email: string;
+  fullName: string | null;
+  items: { name: string; price: number; imageUrl: string }[];
+  cartValue: number;
 }
 
 /**
@@ -968,25 +957,25 @@ interface AbandonedCart {
  *   - no cart_reminder_log entry exists for user today
  *   - user has a profile with email
  */
-async function findAbandonedCarts(thresholdHours = 2): Promise<AbandonedCart[]>
+async function findAbandonedCarts(thresholdHours = 2): Promise<AbandonedCart[]>;
 
 /**
  * Send a reminder email for one abandoned cart.
  * Postconditions: email is sent via Resend API with product images,
  *                 cart total, and a CTA link to /cart
  */
-async function sendReminderEmail(cart: AbandonedCart): Promise<void>
+async function sendReminderEmail(cart: AbandonedCart): Promise<void>;
 ```
 
 ### Email Template
 
 Plain-text + HTML email with:
+
 - Subject: `"You left something in your cart, {firstName}!"`
 - List of up to 3 cart items with thumbnail, name, price in PKR
 - Cart total
 - CTA button: "Complete Your Purchase → asifbrothers.pk/cart"
 - Unsubscribe footer
-
 
 ---
 
@@ -995,6 +984,7 @@ Plain-text + HTML email with:
 ### Design
 
 The product detail page currently shows a single cover image. This feature replaces it with:
+
 1. A **thumbnail strip** (horizontal scrollable row) showing all `product_images` rows.
 2. A **main image viewer** with pinch-to-zoom on mobile and mouse-hover zoom on desktop.
 3. A **lightbox** (Dialog from shadcn/ui) for full-screen view.
@@ -1009,9 +999,9 @@ tracking. For production quality, `react-image-magnifiers` or a custom approach 
 // src/components/product/ProductImageGallery.tsx
 
 interface GalleryImage {
-  url: string
-  alt: string | null
-  variantLabel: string | null
+  url: string;
+  alt: string | null;
+  variantLabel: string | null;
 }
 
 /**
@@ -1023,10 +1013,7 @@ interface GalleryImage {
  *   - Click on main image opens lightbox Dialog
  *   - Keyboard: ArrowLeft/Right navigate between images
  */
-function ProductImageGallery(props: {
-  images: GalleryImage[]
-  productName: string
-}): JSX.Element
+function ProductImageGallery(props: { images: GalleryImage[]; productName: string }): JSX.Element;
 
 // src/components/product/ZoomableImage.tsx
 
@@ -1040,10 +1027,10 @@ function ProductImageGallery(props: {
  *   - On mobile (touch): pinch-to-zoom via CSS touch-action: pinch-zoom
  */
 function ZoomableImage(props: {
-  src: string
-  alt: string
-  zoomScale?: number    // default 2.5
-}): JSX.Element
+  src: string;
+  alt: string;
+  zoomScale?: number; // default 2.5
+}): JSX.Element;
 ```
 
 ### Integration
@@ -1076,14 +1063,14 @@ based on the customer's province/city, looked up in the `delivery_estimates` tab
  */
 async function getDeliveryEstimate(
   province: string,
-  city?: string
-): Promise<{ minDate: Date; maxDate: Date }>
+  city?: string,
+): Promise<{ minDate: Date; maxDate: Date }>;
 
 /**
  * Format a delivery estimate for display.
  * Postconditions: returns a string like "15–18 Jul 2025"
  */
-function formatDeliveryRange(minDate: Date, maxDate: Date): string
+function formatDeliveryRange(minDate: Date, maxDate: Date): string;
 ```
 
 ### Integration Points
@@ -1096,7 +1083,6 @@ function formatDeliveryRange(minDate: Date, maxDate: Date): string
 
 New admin route: `src/routes/_authenticated.admin.delivery.tsx`
 Table UI for CRUD on `delivery_estimates` rows (province, city, min_days, max_days).
-
 
 ---
 
@@ -1115,9 +1101,9 @@ are out of scope for this spec.
 
 ```typescript
 interface ProductVariant {
-  label: string
-  images: GalleryImage[]
-  coverImage: GalleryImage
+  label: string;
+  images: GalleryImage[];
+  coverImage: GalleryImage;
 }
 
 /**
@@ -1128,7 +1114,7 @@ interface ProductVariant {
  *   - Returns variants in insertion order of first occurrence
  *   - If all images have null label, returns single variant with label 'default'
  */
-function groupImagesByVariant(images: GalleryImage[]): ProductVariant[]
+function groupImagesByVariant(images: GalleryImage[]): ProductVariant[];
 ```
 
 ### Component: VariantSelector
@@ -1145,10 +1131,10 @@ function groupImagesByVariant(images: GalleryImage[]): ProductVariant[]
  *   - Keyboard accessible (role="radiogroup")
  */
 function VariantSelector(props: {
-  variants: ProductVariant[]
-  selected: string
-  onChange: (label: string) => void
-}): JSX.Element
+  variants: ProductVariant[];
+  selected: string;
+  onChange: (label: string) => void;
+}): JSX.Element;
 ```
 
 ### Admin: Product Image Upload (Extended)
@@ -1193,14 +1179,14 @@ sequenceDiagram
  *   - PushSubscription is stored in push_subscriptions table
  *   - Returns subscription or null if user denies permission
  */
-async function registerPushSubscription(): Promise<PushSubscription | null>
+async function registerPushSubscription(): Promise<PushSubscription | null>;
 
 /**
  * Unsubscribe this browser from push notifications.
  * Postconditions: push_subscriptions row is deleted,
  *                 browser subscription is revoked
  */
-async function unregisterPushSubscription(): Promise<void>
+async function unregisterPushSubscription(): Promise<void>;
 ```
 
 ### Edge Function: order-notifications
@@ -1209,9 +1195,9 @@ async function unregisterPushSubscription(): Promise<void>
 // supabase/functions/order-notifications/index.ts
 
 interface OrderNotificationPayload {
-  orderId: string
-  newStatus: OrderStatus
-  oldStatus: OrderStatus
+  orderId: string;
+  newStatus: OrderStatus;
+  oldStatus: OrderStatus;
 }
 
 /**
@@ -1223,49 +1209,47 @@ interface OrderNotificationPayload {
  *   - notification_log rows inserted for each channel
  *   - Idempotent: duplicate calls for same (orderId, newStatus) are no-ops
  */
-async function handleOrderNotification(
-  payload: OrderNotificationPayload
-): Promise<void>
+async function handleOrderNotification(payload: OrderNotificationPayload): Promise<void>;
 ```
 
 ### Notification Templates
 
-| Status     | Email Subject                              | Push Title              |
-|------------|--------------------------------------------|-------------------------|
-| processing | "Your order is being prepared"             | "Order being prepared"  |
-| shipped    | "Your order is on its way! 🚚"             | "Order shipped!"        |
-| delivered  | "Your order has been delivered ✅"          | "Order delivered!"      |
-| cancelled  | "Your order has been cancelled"            | "Order cancelled"       |
+| Status     | Email Subject                      | Push Title             |
+| ---------- | ---------------------------------- | ---------------------- |
+| processing | "Your order is being prepared"     | "Order being prepared" |
+| shipped    | "Your order is on its way! 🚚"     | "Order shipped!"       |
+| delivered  | "Your order has been delivered ✅" | "Order delivered!"     |
+| cancelled  | "Your order has been cancelled"    | "Order cancelled"      |
 
 ### Service Worker
 
 `public/sw.js` — minimal push notification handler:
 
 ```javascript
-self.addEventListener('push', (event) => {
-  const data = event.data.json()
+self.addEventListener("push", (event) => {
+  const data = event.data.json();
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: '/icon-192.png',
-      badge: '/badge-72.png',
-      data: { url: data.url }
-    })
-  )
-})
+      icon: "/icon-192.png",
+      badge: "/badge-72.png",
+      data: { url: data.url },
+    }),
+  );
+});
 
-self.addEventListener('notificationclick', (event) => {
-  event.notification.close()
-  event.waitUntil(clients.openWindow(event.notification.data.url))
-})
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow(event.notification.data.url));
+});
 ```
 
 ### Account Page Integration
 
 `_authenticated.account.index.tsx` — add "Notifications" section with:
+
 - Toggle: "Email me when my order status changes"
 - Toggle: "Browser push notifications" (triggers `registerPushSubscription`)
-
 
 ---
 
@@ -1330,16 +1314,16 @@ public/
 
 ## Error Handling Strategy
 
-| Feature     | Error Scenario                        | Handling                                                           |
-|-------------|---------------------------------------|---------------------------------------------------------------------|
-| F1 Search   | Supabase query fails                  | Show "Search unavailable" in dropdown, log to console              |
-| F4 PDF      | react-pdf render error                | Show toast "Could not generate PDF", offer "Print page" fallback    |
-| F5/F6 Pay   | Gateway timeout                       | Show "Payment is processing — check your phone" UI, poll status     |
-| F5/F6 Pay   | Webhook not received in 10 min        | Cron marks stale pending transactions as 'failed' after 15 min     |
-| F6 Bank     | Screenshot upload fails               | Show error, allow retry, store reference manually                   |
-| F11 Email   | Resend API failure                    | Log to `notification_log` with status='failed', retry next hour    |
-| F15 Push    | Permission denied                     | Silently skip, show "Enable push" prompt once per session           |
-| F9 FBT      | compute-associations cron fails       | Stale data still served, no UI impact                               |
+| Feature   | Error Scenario                  | Handling                                                         |
+| --------- | ------------------------------- | ---------------------------------------------------------------- |
+| F1 Search | Supabase query fails            | Show "Search unavailable" in dropdown, log to console            |
+| F4 PDF    | react-pdf render error          | Show toast "Could not generate PDF", offer "Print page" fallback |
+| F5/F6 Pay | Gateway timeout                 | Show "Payment is processing — check your phone" UI, poll status  |
+| F5/F6 Pay | Webhook not received in 10 min  | Cron marks stale pending transactions as 'failed' after 15 min   |
+| F6 Bank   | Screenshot upload fails         | Show error, allow retry, store reference manually                |
+| F11 Email | Resend API failure              | Log to `notification_log` with status='failed', retry next hour  |
+| F15 Push  | Permission denied               | Silently skip, show "Enable push" prompt once per session        |
+| F9 FBT    | compute-associations cron fails | Stale data still served, no UI impact                            |
 
 ---
 
@@ -1371,6 +1355,7 @@ public/
 ### Unit Tests
 
 Key pure functions to unit test:
+
 - `buildTimeline(order)` — test each of 7 order statuses
 - `buildCompareRows(products)` — test with 2 and 3 products, including sparse specs
 - `groupImagesByVariant(images)` — test with mixed/null labels
@@ -1392,10 +1377,10 @@ Key pure functions to unit test:
 
 ## Dependencies to Add
 
-| Package                  | Version  | Purpose                  |
-|--------------------------|----------|--------------------------|
-| `@react-pdf/renderer`    | `^4.x`   | Client-side PDF invoice  |
-| `web-push` (Edge Fn)     | `^3.x`   | VAPID push notifications |
-| `resend` (Edge Fn)       | `^4.x`   | Transactional email      |
+| Package               | Version | Purpose                  |
+| --------------------- | ------- | ------------------------ |
+| `@react-pdf/renderer` | `^4.x`  | Client-side PDF invoice  |
+| `web-push` (Edge Fn)  | `^3.x`  | VAPID push notifications |
+| `resend` (Edge Fn)    | `^4.x`  | Transactional email      |
 
 All other needs (recharts, Radix UI, date-fns, embla-carousel, Zod) are already in `package.json`.

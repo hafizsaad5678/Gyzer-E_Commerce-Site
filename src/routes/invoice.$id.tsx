@@ -9,7 +9,9 @@ import autoTable from "jspdf-autotable";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/invoice/$id")({
-  head: () => ({ meta: [{ title: "Invoice — Asif Brothers" }, { name: "robots", content: "noindex" }] }),
+  head: () => ({
+    meta: [{ title: "Invoice — Asif Brothers" }, { name: "robots", content: "noindex" }],
+  }),
   component: InvoicePage,
 });
 
@@ -40,13 +42,18 @@ function InvoicePage() {
   async function handleDownloadPDF() {
     setDownloading(true);
     try {
-      const PDFConstructor = typeof jsPDF === "function" ? jsPDF : (jsPDF as any).jsPDF || (window as any).jspdf?.jsPDF;
+      const PDFConstructor =
+        typeof jsPDF === "function" ? jsPDF : (jsPDF as any).jsPDF || (window as any).jspdf?.jsPDF;
       if (!PDFConstructor) throw new Error("PDF library failed to load");
       const doc = new PDFConstructor({ orientation: "portrait", unit: "pt", format: "a4" });
-      
+
       const addr = order.shipping_address as any;
-      const issueDate = new Date(order.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "long", year: "numeric" });
-      
+      const issueDate = new Date(order.created_at).toLocaleDateString("en-PK", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+
       // Header
       doc.setFontSize(22);
       doc.setTextColor(2, 8, 23);
@@ -79,34 +86,34 @@ function InvoicePage() {
       doc.text(`${addr?.city || ""}, ${addr?.province || ""} ${addr?.postal_code || ""}`, 40, 210);
 
       // Table
-      const tableBody = items.map(item => [
+      const tableBody = items.map((item) => [
         item.product_name || "Unknown",
         item.product_sku || "-",
         item.quantity.toString(),
         formatPKR(item.unit_price_pkr || 0),
-        formatPKR(item.subtotal_pkr || 0)
+        formatPKR(item.subtotal_pkr || 0),
       ]);
 
       autoTable(doc, {
         startY: 230,
-        head: [['Description', 'SKU', 'Qty', 'Unit Price', 'Total']],
+        head: [["Description", "SKU", "Qty", "Unit Price", "Total"]],
         body: tableBody,
-        theme: 'plain',
-        headStyles: { fillColor: [241, 245, 249], textColor: [2, 8, 23], fontStyle: 'bold' },
+        theme: "plain",
+        headStyles: { fillColor: [241, 245, 249], textColor: [2, 8, 23], fontStyle: "bold" },
         bodyStyles: { textColor: [2, 8, 23] },
         styles: { cellPadding: 8, fontSize: 10 },
         columnStyles: {
           0: { cellWidth: 180 },
-          2: { halign: 'right' },
-          3: { halign: 'right' },
-          4: { halign: 'right', fontStyle: 'bold' }
-        }
+          2: { halign: "right" },
+          3: { halign: "right" },
+          4: { halign: "right", fontStyle: "bold" },
+        },
       });
 
       // Totals
       const finalY = (doc as any).lastAutoTable.finalY || 230;
       let currentY = finalY + 30;
-      
+
       doc.setFontSize(10);
       doc.setTextColor(100, 116, 139);
       doc.text("Subtotal", 400, currentY);
@@ -125,7 +132,12 @@ function InvoicePage() {
       doc.setTextColor(100, 116, 139);
       doc.text("Shipping", 400, currentY);
       doc.setTextColor(2, 8, 23);
-      doc.text(Number(order.shipping_pkr) === 0 ? "Free" : formatPKR(order.shipping_pkr || 0), 550, currentY, { align: "right" });
+      doc.text(
+        Number(order.shipping_pkr) === 0 ? "Free" : formatPKR(order.shipping_pkr || 0),
+        550,
+        currentY,
+        { align: "right" },
+      );
       currentY += 20;
 
       doc.setDrawColor(226, 232, 240);
@@ -160,20 +172,29 @@ function InvoicePage() {
       <div className="min-h-screen flex items-center justify-center text-center px-4">
         <div>
           <p className="text-muted-foreground mb-4">Invoice not found.</p>
-          <Link to="/account/orders" className="text-copper underline text-sm">Back to orders</Link>
+          <Link to="/account/orders" className="text-copper underline text-sm">
+            Back to orders
+          </Link>
         </div>
       </div>
     );
   }
 
   const addr = order.shipping_address as any;
-  const issueDate = new Date(order.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "long", year: "numeric" });
+  const issueDate = new Date(order.created_at).toLocaleDateString("en-PK", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
     <div className="min-h-screen bg-background">
       {/* Toolbar — hidden on print */}
       <div className="print:hidden sticky top-0 z-10 border-b border-border bg-background px-6 py-3 flex items-center justify-between gap-4">
-        <Link to="/account/orders" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <Link
+          to="/account/orders"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+        >
           <ArrowLeft className="h-4 w-4" /> Back to orders
         </Link>
         <div className="flex gap-2">
@@ -213,20 +234,36 @@ function InvoicePage() {
         {/* Bill to */}
         <div className="grid sm:grid-cols-2 gap-6 mb-8 p-5 rounded-xl bg-secondary/40 border border-border">
           <div>
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Bill to</div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              Bill to
+            </div>
             <div className="text-sm font-medium">{addr?.full_name}</div>
             <div className="text-sm text-muted-foreground">{addr?.phone}</div>
             <div className="text-sm text-muted-foreground">
-              {addr?.line1}{addr?.line2 ? `, ${addr.line2}` : ""},<br />
+              {addr?.line1}
+              {addr?.line2 ? `, ${addr.line2}` : ""},<br />
               {addr?.city}, {addr?.province} {addr?.postal_code ?? ""},<br />
               {addr?.country}
             </div>
           </div>
           <div className="text-sm sm:text-right">
-            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Order details</div>
-            <div><span className="text-muted-foreground">Status: </span><span className="capitalize font-medium">{order.status}</span></div>
-            <div><span className="text-muted-foreground">Payment: </span><span className="capitalize font-medium">{order.payment_status}</span></div>
-            {order.coupon_code && <div><span className="text-muted-foreground">Coupon: </span><span className="font-medium font-mono">{order.coupon_code}</span></div>}
+            <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+              Order details
+            </div>
+            <div>
+              <span className="text-muted-foreground">Status: </span>
+              <span className="capitalize font-medium">{order.status}</span>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Payment: </span>
+              <span className="capitalize font-medium">{order.payment_status}</span>
+            </div>
+            {order.coupon_code && (
+              <div>
+                <span className="text-muted-foreground">Coupon: </span>
+                <span className="font-medium font-mono">{order.coupon_code}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -245,7 +282,9 @@ function InvoicePage() {
             {items.map((item) => (
               <tr key={item.id}>
                 <td className="py-3 font-medium">{item.product_name}</td>
-                <td className="py-3 text-muted-foreground font-mono text-xs">{item.product_sku ?? "—"}</td>
+                <td className="py-3 text-muted-foreground font-mono text-xs">
+                  {item.product_sku ?? "—"}
+                </td>
                 <td className="py-3 text-right">{item.quantity}</td>
                 <td className="py-3 text-right">{formatPKR(item.unit_price_pkr)}</td>
                 <td className="py-3 text-right font-medium">{formatPKR(item.subtotal_pkr)}</td>
@@ -281,7 +320,9 @@ function InvoicePage() {
         {/* Footer */}
         <div className="border-t border-border pt-6 text-xs text-muted-foreground text-center space-y-1">
           <p>Thank you for shopping with {BRAND.name}!</p>
-          <p>For any queries, contact us at {BRAND.email} or {BRAND.phone}</p>
+          <p>
+            For any queries, contact us at {BRAND.email} or {BRAND.phone}
+          </p>
           <p>{BRAND.address}</p>
         </div>
       </div>

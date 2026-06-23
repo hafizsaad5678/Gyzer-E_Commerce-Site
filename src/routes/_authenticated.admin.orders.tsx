@@ -1,82 +1,127 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { queryOptions, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
 
-const statuses = ["pending","paid","processing","shipped","delivered","cancelled","refunded"] as const;
+const statuses = [
+  "pending",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refunded",
+] as const;
+type OrderStatus = (typeof statuses)[number];
+
+// ─── Query ────────────────────────────────────────────────────────────────────
+
+const ordersOpts = (filter: string) =>
+  queryOptions({
+    queryKey: ["admin-orders", filter],
+    queryFn: async () => {
+      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      if (filter) q = q.eq("status", filter as any);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+
+// ─── Route ────────────────────────────────────────────────────────────────────
 
 export const Route = createFileRoute("/_authenticated/admin/orders")({
   component: AdminOrders,
 });
 
+// ─── Component ────────────────────────────────────────────────────────────────
+
 function AdminOrders() {
-  const [orders, setOrders] = useState<any[]>([]);
+  const qc = useQueryClient();
   const [filter, setFilter] = useState<string>("");
 
-  async function load() {
-    let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
-    if (filter) q = q.eq("status", filter as any);
-    const { data } = await q;
-    setOrders(data ?? []);
-  }
-  useEffect(() => { load(); }, [filter]);
+  const { data: orders = [], isLoading } = useQuery(ordersOpts(filter));
 
-  async function changeStatus(order: any, newStatus: string) {
-    if (order.status === newStatus) return;
+  const statusMutation = useMutation({
+    mutationFn: async ({ order, newStatus }: { order: any; newStatus: string }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ status: newStatus as any, updated_at: new Date().toISOString() })
+        .eq("id", order.id);
+      if (error) throw error;
 
-    // Update DB
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus as any, updated_at: new Date().toISOString() })
-      .eq("id", order.id);
+      // Fire email notification non-blocking — don't await so the UI doesn't wait
+      supabase.functions
+        .invoke("send-order-status-email", {
+          body: {
+            to: order.email,
+            customer_name: (order.shipping_address as any)?.full_name ?? null,
+            order_number: order.order_number,
+            order_total: order.total_pkr,
+            status: newStatus,
+            order_id: order.id,
+            tracking_number: order.tracking_number,
+            courier_name: order.courier_name,
+          },
+        })
+        .then(({ error: fnErr }) => {
+          if (fnErr) console.warn("Email notification failed:", fnErr.message);
+        });
 
-    if (error) { toast.error("Failed to update status"); return; }
+      return { orderNumber: order.order_number, newStatus };
+    },
+    onSuccess: ({ orderNumber, newStatus }) => {
+      toast.success(`Order ${orderNumber} → ${newStatus}`);
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+    onError: () => toast.error("Failed to update status"),
+  });
 
-    // Fire email notification (non-blocking)
-    supabase.functions
-      .invoke("send-order-status-email", {
-        body: {
-          to: order.email,
-          customer_name: (order.shipping_address as any)?.full_name ?? null,
-          order_number: order.order_number,
-          order_total: order.total_pkr,
-          status: newStatus,
-          order_id: order.id,
-          tracking_number: order.tracking_number,
-          courier_name: order.courier_name,
-        },
-      })
-      .then(({ error: fnErr }) => {
-        if (fnErr) console.warn("Email notification failed:", fnErr.message);
-      });
-
-    toast.success(`Order ${order.order_number} → ${newStatus}`);
-    load();
-  }
-
-  async function updateTracking(orderId: string, courier: string | null, tracking: string | null) {
-    const { error } = await supabase
-      .from("orders")
-      .update({ courier_name: courier, tracking_number: tracking } as any)
-      .eq("id", orderId);
-    if (error) toast.error("Failed to update tracking info");
-    else {
+  const trackingMutation = useMutation({
+    mutationFn: async ({
+      orderId,
+      courier,
+      tracking,
+    }: {
+      orderId: string;
+      courier: string | null;
+      tracking: string | null;
+    }) => {
+      const { error } = await supabase
+        .from("orders")
+        .update({ courier_name: courier, tracking_number: tracking } as any)
+        .eq("id", orderId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
       toast.success("Tracking saved");
-      load(); // refresh data
-    }
-  }
+      qc.invalidateQueries({ queryKey: ["admin-orders"] });
+    },
+    onError: () => toast.error("Failed to update tracking info"),
+  });
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-end gap-4 flex-wrap">
         <div>
-          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Sales</div>
+          <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+            Sales
+          </div>
           <h1 className="text-display text-4xl">Orders</h1>
         </div>
-        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="rounded-md border border-input bg-background px-3 py-2 text-sm">
+        <select
+          value={filter}
+          onChange={(e) => setFilter(e.target.value)}
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        >
           <option value="">All statuses</option>
-          {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+          {statuses.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -94,48 +139,80 @@ function AdminOrders() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {orders.map((o) => (
-                <tr key={o.id}>
-                  <td className="px-4 py-3 font-medium">{o.order_number}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{o.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString("en-PK")}</td>
-                  <td className="px-4 py-3 text-right">{formatPKR(o.total_pkr)}</td>
-                  <td className="px-4 py-3">
-                    <select
-                      value={o.status}
-                      onChange={(e) => changeStatus(o, e.target.value)}
-                      className="rounded-md border border-input bg-background px-2 py-1 text-xs"
-                    >
-                      {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1.5">
-                      <input
-                        placeholder="Courier (e.g. TCS)"
-                        defaultValue={o.courier_name || ""}
-                        onBlur={(e) => updateTracking(o.id, e.target.value || null, o.tracking_number)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
-                      />
-                      <input
-                        placeholder="Tracking ID"
-                        defaultValue={o.tracking_number || ""}
-                        onBlur={(e) => updateTracking(o.id, o.courier_name, e.target.value || null)}
-                        className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {orders.length === 0 && (
+              {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center text-muted-foreground">No orders yet.</td>
+                  <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                    Loading…
+                  </td>
                 </tr>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+                    No orders yet.
+                  </td>
+                </tr>
+              ) : (
+                orders.map((o) => (
+                  <tr key={o.id}>
+                    <td className="px-4 py-3 font-medium">{o.order_number}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{o.email}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {new Date(o.created_at).toLocaleDateString("en-PK")}
+                    </td>
+                    <td className="px-4 py-3 text-right">{formatPKR(o.total_pkr)}</td>
+                    <td className="px-4 py-3">
+                      <select
+                        value={o.status}
+                        onChange={(e) => {
+                          if (e.target.value !== o.status) {
+                            statusMutation.mutate({ order: o, newStatus: e.target.value });
+                          }
+                        }}
+                        className="rounded-md border border-input bg-background px-2 py-1 text-xs"
+                      >
+                        {statuses.map((s) => (
+                          <option key={s} value={s}>
+                            {s}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <input
+                          placeholder="Courier (e.g. TCS)"
+                          defaultValue={o.courier_name || ""}
+                          onBlur={(e) =>
+                            trackingMutation.mutate({
+                              orderId: o.id,
+                              courier: e.target.value || null,
+                              tracking: o.tracking_number,
+                            })
+                          }
+                          className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
+                        />
+                        <input
+                          placeholder="Tracking ID"
+                          defaultValue={o.tracking_number || ""}
+                          onBlur={(e) =>
+                            trackingMutation.mutate({
+                              orderId: o.id,
+                              courier: o.courier_name,
+                              tracking: e.target.value || null,
+                            })
+                          }
+                          className="rounded-md border border-input bg-background px-2 py-1 text-xs w-32"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))
               )}
             </tbody>
           </table>
         </div>
       </div>
+
       <p className="text-xs text-muted-foreground">
         Status change automatically sends an email notification to the customer via Resend.
       </p>

@@ -7,17 +7,16 @@ import { ProductCard, type ProductCardData } from "@/components/site/ProductCard
 import { supabase } from "@/integrations/supabase/client";
 import { getRecentlyViewed, type RVItem } from "@/lib/recently-viewed";
 import hero from "@/assets/hero-geyser.jpg";
-import imgElectric from "@/assets/product-electric.jpg";
-import imgGas from "@/assets/product-gas.jpg";
-import imgInstant from "@/assets/product-instant.jpg";
-import imgSolar from "@/assets/product-solar.jpg";
+import { catImg } from "@/lib/cat-images";
 
 const featuredOpts = queryOptions({
   queryKey: ["products", "featured"],
   queryFn: async () => {
     const { data, error } = await supabase
       .from("products")
-      .select("id,slug,name,brand,price_pkr,discount_price_pkr,cover_image_url,capacity_liters,warranty_months,stock,categories(slug)")
+      .select(
+        "id,slug,name,brand,price_pkr,discount_price_pkr,cover_image_url,capacity_liters,warranty_months,stock,categories(slug)",
+      )
       .eq("is_active", true)
       .eq("is_featured", true)
       .order("created_at", { ascending: false })
@@ -60,9 +59,16 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Asif Brothers — Premium Geysers for Pakistan" },
-      { name: "description", content: "Shop electric, gas, instant and solar geysers from Asif Brothers. Trusted by Pakistani families since 1998." },
+      {
+        name: "description",
+        content:
+          "Shop electric, gas, instant and solar geysers from Asif Brothers. Trusted by Pakistani families since 1998.",
+      },
       { property: "og:title", content: "Asif Brothers — Premium Geysers for Pakistan" },
-      { property: "og:description", content: "Shop electric, gas, instant and solar geysers from Asif Brothers." },
+      {
+        property: "og:description",
+        content: "Shop electric, gas, instant and solar geysers from Asif Brothers.",
+      },
     ],
   }),
   loader: async ({ context }) => {
@@ -74,13 +80,6 @@ export const Route = createFileRoute("/")({
   },
   component: Home,
 });
-
-const catImg: Record<string, string> = {
-  electric: imgElectric,
-  gas: imgGas,
-  instant: imgInstant,
-  solar: imgSolar,
-};
 
 function Home() {
   const { data: featured } = useSuspenseQuery(featuredOpts);
@@ -103,29 +102,50 @@ function Home() {
               Trusted since 1998
             </div>
             <h1 className="text-display text-5xl sm:text-6xl lg:text-7xl">
-              Hot water,<br />
+              Hot water,
+              <br />
               <span className="italic text-copper">engineered</span> for Pakistan.
             </h1>
             <p className="text-lg text-muted-foreground max-w-lg">
-              From load-shedding-ready electric tanks to high-efficiency solar systems — Asif Brothers builds geysers that survive Pakistani winters and last decades.
+              From load-shedding-ready electric tanks to high-efficiency solar systems — Asif
+              Brothers builds geysers that survive Pakistani winters and last decades.
             </p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <Link to="/shop" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition">
+              <Link
+                to="/shop"
+                className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
+              >
                 Browse the shop <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link to="/categories" className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-secondary transition">
+              <Link
+                to="/categories"
+                className="inline-flex items-center gap-2 rounded-md border border-border bg-card px-5 py-3 text-sm font-medium text-foreground hover:bg-secondary transition"
+              >
                 Explore categories
               </Link>
             </div>
             <div className="flex flex-wrap gap-6 pt-6 text-xs text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-copper" /> Up to 7-year warranty</span>
-              <span className="inline-flex items-center gap-1.5"><Truck className="h-4 w-4 text-copper" /> Nationwide shipping</span>
-              <span className="inline-flex items-center gap-1.5"><Wrench className="h-4 w-4 text-copper" /> Authorized service</span>
+              <span className="inline-flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-copper" /> Up to 7-year warranty
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Truck className="h-4 w-4 text-copper" /> Nationwide shipping
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Wrench className="h-4 w-4 text-copper" /> Authorized service
+              </span>
             </div>
           </div>
           <div className="relative">
             <div className="absolute -inset-8 thermal-gradient blur-3xl opacity-20 rounded-full" />
-            <img src={hero} alt="Premium Asif Brothers geyser" fetchPriority="high" width={1600} height={1280} className="relative rounded-2xl shadow-[var(--shadow-elevated)] object-cover aspect-[4/3]" />
+            <img
+              src={hero}
+              alt="Premium Asif Brothers geyser"
+              fetchPriority="high"
+              width={1600}
+              height={1280}
+              className="relative rounded-2xl shadow-[var(--shadow-elevated)] object-cover aspect-[4/3]"
+            />
           </div>
         </div>
       </section>
@@ -134,10 +154,17 @@ function Home() {
       <section className="container-page py-16 md:py-24">
         <div className="flex items-end justify-between mb-10 gap-6">
           <div>
-            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Categories</div>
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+              Categories
+            </div>
             <h2 className="text-display text-3xl md:text-4xl">Choose your heat source</h2>
           </div>
-          <Link to="/categories" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">All <ArrowRight className="h-3.5 w-3.5" /></Link>
+          <Link
+            to="/categories"
+            className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+          >
+            All <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {categories.map((c) => (
@@ -148,10 +175,19 @@ function Home() {
               className="surface-card overflow-hidden group hover:shadow-[var(--shadow-elevated)] transition-all"
             >
               <div className="aspect-[4/3] bg-steel/40 overflow-hidden">
-                <img src={catImg[c.slug]} alt={c.name} loading="lazy" width={800} height={600} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <img
+                  src={catImg[c.slug]}
+                  alt={c.name}
+                  loading="lazy"
+                  width={800}
+                  height={600}
+                  className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
               </div>
               <div className="p-5">
-                <h3 className="text-display text-xl mb-1.5 group-hover:text-copper transition-colors">{c.name}</h3>
+                <h3 className="text-display text-xl mb-1.5 group-hover:text-copper transition-colors">
+                  {c.name}
+                </h3>
                 <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
               </div>
             </Link>
@@ -164,14 +200,25 @@ function Home() {
         <div className="container-page py-16 md:py-24">
           <div className="flex items-end justify-between mb-10 gap-6">
             <div>
-              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Bestsellers</div>
+              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+                Bestsellers
+              </div>
               <h2 className="text-display text-3xl md:text-4xl">Featured geysers</h2>
             </div>
-            <Link to="/shop" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">Shop all <ArrowRight className="h-3.5 w-3.5" /></Link>
+            <Link
+              to="/shop"
+              className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1"
+            >
+              Shop all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {featured.map((p: any) => (
-              <ProductCard key={p.id} p={p as ProductCardData} fallbackImg={catImg[p.categories?.slug ?? ""]} />
+              <ProductCard
+                key={p.id}
+                p={p as ProductCardData}
+                fallbackImg={catImg[p.categories?.slug ?? ""]}
+              />
             ))}
           </div>
         </div>
@@ -181,14 +228,21 @@ function Home() {
       <section className="container-page py-16 md:py-24">
         <div className="flex items-end justify-between mb-12 gap-6">
           <div className="max-w-2xl">
-            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Reviews</div>
-            <h2 className="text-display text-3xl md:text-4xl">Trusted by 50,000+ Pakistani homes</h2>
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+              Reviews
+            </div>
+            <h2 className="text-display text-3xl md:text-4xl">
+              Trusted by 50,000+ Pakistani homes
+            </h2>
           </div>
-          <Link to="/write-review" className="text-sm text-copper hover:underline inline-flex items-center gap-1 shrink-0">
+          <Link
+            to="/write-review"
+            className="text-sm text-copper hover:underline inline-flex items-center gap-1 shrink-0"
+          >
             Write a review <ArrowRight className="h-3.5 w-3.5" />
           </Link>
         </div>
-        
+
         {reviews.length === 0 ? (
           <div className="text-muted-foreground text-sm">No reviews yet.</div>
         ) : (
@@ -197,11 +251,18 @@ function Home() {
               <figure key={t.id} className="surface-card p-6 space-y-4 flex flex-col">
                 <div className="flex gap-1 text-copper">
                   {Array.from({ length: 5 }).map((_, k) => (
-                    <Star key={k} className={`h-4 w-4 ${k < t.rating ? "fill-current" : "opacity-30"}`} />
+                    <Star
+                      key={k}
+                      className={`h-4 w-4 ${k < t.rating ? "fill-current" : "opacity-30"}`}
+                    />
                   ))}
                 </div>
-                <blockquote className="text-display text-lg leading-snug flex-1">&ldquo;{t.body}&rdquo;</blockquote>
-                <figcaption className="text-xs uppercase tracking-wider text-muted-foreground">{t.title || "Customer"}</figcaption>
+                <blockquote className="text-display text-lg leading-snug flex-1">
+                  &ldquo;{t.body}&rdquo;
+                </blockquote>
+                <figcaption className="text-xs uppercase tracking-wider text-muted-foreground">
+                  {t.title || "Customer"}
+                </figcaption>
               </figure>
             ))}
           </div>
@@ -212,9 +273,17 @@ function Home() {
       <section className="container-page pb-20">
         <div className="thermal-gradient rounded-2xl p-10 md:p-14 text-primary-foreground relative overflow-hidden">
           <div className="relative z-10 max-w-2xl space-y-5">
-            <h2 className="text-display text-3xl md:text-4xl">Not sure which geyser fits your home?</h2>
-            <p className="text-primary-foreground/85">Tell us about your household size, gas connection, and usage — we'll recommend the right model and quote installation.</p>
-            <Link to="/contact" className="inline-flex items-center gap-2 rounded-md bg-background px-5 py-3 text-sm font-medium text-foreground hover:opacity-90 transition">
+            <h2 className="text-display text-3xl md:text-4xl">
+              Not sure which geyser fits your home?
+            </h2>
+            <p className="text-primary-foreground/85">
+              Tell us about your household size, gas connection, and usage — we'll recommend the
+              right model and quote installation.
+            </p>
+            <Link
+              to="/contact"
+              className="inline-flex items-center gap-2 rounded-md bg-background px-5 py-3 text-sm font-medium text-foreground hover:opacity-90 transition"
+            >
               Talk to an expert <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
@@ -226,7 +295,9 @@ function Home() {
         <section className="container-page pb-20">
           <div className="flex items-end justify-between mb-10 gap-6">
             <div>
-              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Your history</div>
+              <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+                Your history
+              </div>
               <h2 className="text-display text-3xl md:text-4xl">Recently viewed</h2>
             </div>
           </div>

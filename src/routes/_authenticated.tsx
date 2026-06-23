@@ -13,7 +13,8 @@ function AuthGate() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
+      if (!data.session)
+        navigate({ to: "/auth", search: { redirect: window.location.pathname } as any });
       else setReady(true);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
@@ -25,7 +26,9 @@ function AuthGate() {
   if (!ready) {
     return (
       <SiteLayout>
-        <div className="container-page py-32 text-center text-muted-foreground text-sm">Loading…</div>
+        <div className="container-page py-32 text-center text-muted-foreground text-sm">
+          Loading…
+        </div>
       </SiteLayout>
     );
   }

@@ -25,10 +25,23 @@ function Password() {
     <form onSubmit={submit} className="surface-card p-6 md:p-8 max-w-md space-y-4">
       <h2 className="text-display text-2xl">Change password</h2>
       <div>
-        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">New password</label>
-        <input name="password" type="password" minLength={8} required className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm" />
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+          New password
+        </label>
+        <input
+          name="password"
+          type="password"
+          minLength={8}
+          required
+          className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
+        />
       </div>
-      <button disabled={loading} className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">{loading ? "…" : "Update password"}</button>
+      <button
+        disabled={loading}
+        className="rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+      >
+        {loading ? "…" : "Update password"}
+      </button>
     </form>
   );
 }

@@ -43,11 +43,16 @@ function ComparePage() {
       <section className="container-page py-12">
         <div className="flex items-end justify-between mb-8 gap-4 flex-wrap">
           <div>
-            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Compare</div>
+            <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+              Compare
+            </div>
             <h1 className="text-display text-4xl">Compare geysers</h1>
           </div>
           {items.length > 0 && (
-            <button onClick={clear} className="text-sm text-muted-foreground hover:text-destructive">
+            <button
+              onClick={clear}
+              className="text-sm text-muted-foreground hover:text-destructive"
+            >
               Clear all
             </button>
           )}
@@ -57,7 +62,10 @@ function ComparePage() {
           <div className="surface-card p-16 text-center space-y-4">
             <GitCompareArrows className="h-10 w-10 mx-auto text-muted-foreground" />
             <p className="text-muted-foreground">No products added for comparison yet.</p>
-            <Link to="/shop" className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground">
+            <Link
+              to="/shop"
+              className="inline-flex items-center gap-2 rounded-md bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground"
+            >
               Browse products
             </Link>
           </div>
@@ -80,9 +88,15 @@ function ComparePage() {
                         <Link to="/product/$slug" params={{ slug: item.slug }}>
                           <div className="aspect-square bg-steel/30 rounded-md overflow-hidden mb-3">
                             {item.cover_image_url ? (
-                              <img src={item.cover_image_url} alt={item.name} className="h-full w-full object-cover" />
+                              <img
+                                src={item.cover_image_url}
+                                alt={item.name}
+                                className="h-full w-full object-cover"
+                              />
                             ) : (
-                              <div className="h-full w-full grid place-items-center text-[10px] text-muted-foreground">No img</div>
+                              <div className="h-full w-full grid place-items-center text-[10px] text-muted-foreground">
+                                No img
+                              </div>
                             )}
                           </div>
                           <div className="text-sm font-semibold leading-snug hover:text-copper transition-colors line-clamp-2">
@@ -107,7 +121,9 @@ function ComparePage() {
               <tbody>
                 {ROWS.map((row) => (
                   <tr key={row.key} className="border-t border-border">
-                    <td className="py-3 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{row.label}</td>
+                    <td className="py-3 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {row.label}
+                    </td>
                     {items.map((item) => {
                       const val = item[row.key];
                       const display = row.fmt ? row.fmt(val) : (val ?? "—");
@@ -125,7 +141,8 @@ function ComparePage() {
         )}
 
         <p className="text-xs text-muted-foreground mt-6">
-          You can compare up to 3 products. Add more from any product page using the <GitCompareArrows className="h-3.5 w-3.5 inline" /> icon.
+          You can compare up to 3 products. Add more from any product page using the{" "}
+          <GitCompareArrows className="h-3.5 w-3.5 inline" /> icon.
         </p>
       </section>
     </SiteLayout>

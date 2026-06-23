@@ -56,15 +56,23 @@ function TrackingBar({ status }: { status: string }) {
           const isLast = i === STEPS.length - 1;
           return (
             <div key={step} className="flex items-center flex-1 last:flex-none">
-              <div className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors ${done ? "bg-copper" : "bg-border"}`} />
-              {!isLast && <div className={`h-0.5 flex-1 transition-colors ${i < activeIdx ? "bg-copper" : "bg-border"}`} />}
+              <div
+                className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors ${done ? "bg-copper" : "bg-border"}`}
+              />
+              {!isLast && (
+                <div
+                  className={`h-0.5 flex-1 transition-colors ${i < activeIdx ? "bg-copper" : "bg-border"}`}
+                />
+              )}
             </div>
           );
         })}
       </div>
       <div className="flex justify-between mt-1.5">
         {STEPS.map((step) => (
-          <span key={step} className="text-[10px] capitalize text-muted-foreground">{step}</span>
+          <span key={step} className="text-[10px] capitalize text-muted-foreground">
+            {step}
+          </span>
         ))}
       </div>
     </div>
@@ -77,7 +85,10 @@ function Orders() {
   const [orderItems, setOrderItems] = useState<Record<string, any[]>>({});
 
   async function toggleExpand(orderId: string) {
-    if (expanded === orderId) { setExpanded(null); return; }
+    if (expanded === orderId) {
+      setExpanded(null);
+      return;
+    }
     setExpanded(orderId);
     if (!orderItems[orderId]) {
       const { data } = await supabase.from("order_items").select("*").eq("order_id", orderId);
@@ -90,7 +101,10 @@ function Orders() {
       <div className="surface-card p-12 text-center">
         <Package className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
         <p className="text-muted-foreground mb-5">No orders yet.</p>
-        <Link to="/shop" className="inline-flex rounded-md bg-primary px-5 py-2.5 text-sm text-primary-foreground font-medium">
+        <Link
+          to="/shop"
+          className="inline-flex rounded-md bg-primary px-5 py-2.5 text-sm text-primary-foreground font-medium"
+        >
           Start shopping
         </Link>
       </div>
@@ -113,16 +127,26 @@ function Orders() {
             >
               <div className="min-w-0">
                 <div className="text-xs uppercase tracking-wider text-muted-foreground">
-                  {new Date(o.created_at).toLocaleDateString("en-PK", { day: "numeric", month: "short", year: "numeric" })}
+                  {new Date(o.created_at).toLocaleDateString("en-PK", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </div>
                 <div className="text-display text-lg font-medium">{o.order_number}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{formatPKR(o.total_pkr)}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusColor[o.status] ?? "bg-secondary"}`}>
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusColor[o.status] ?? "bg-secondary"}`}
+                >
                   {o.status}
                 </span>
-                {isOpen ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
+                {isOpen ? (
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                )}
               </div>
             </button>
 
@@ -131,20 +155,26 @@ function Orders() {
               <div className="border-t border-border px-5 pb-5 pt-4 space-y-5">
                 {/* Tracking bar */}
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Order status</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Order status
+                  </div>
                   <TrackingBar status={o.status} />
                 </div>
 
                 {/* Items */}
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Items</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+                    Items
+                  </div>
                   {orderItems[o.id] ? (
                     <ul className="divide-y divide-border text-sm">
                       {orderItems[o.id].map((item) => (
                         <li key={item.id} className="flex justify-between py-2.5">
                           <div>
                             <div className="font-medium">{item.product_name}</div>
-                            <div className="text-xs text-muted-foreground">{item.product_sku} · Qty {item.quantity}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {item.product_sku} · Qty {item.quantity}
+                            </div>
                           </div>
                           <div className="font-medium">{formatPKR(item.subtotal_pkr)}</div>
                         </li>
@@ -154,19 +184,42 @@ function Orders() {
                     <p className="text-sm text-muted-foreground">Loading…</p>
                   )}
                   <dl className="mt-3 pt-3 border-t border-border space-y-1.5 text-sm">
-                    <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>{formatPKR(o.subtotal_pkr)}</dd></div>
-                    {Number(o.discount_pkr) > 0 && <div className="flex justify-between"><dt className="text-muted-foreground">Discount</dt><dd className="text-copper">-{formatPKR(o.discount_pkr)}</dd></div>}
-                    <div className="flex justify-between"><dt className="text-muted-foreground">Shipping</dt><dd>{Number(o.shipping_pkr) === 0 ? "Free" : formatPKR(o.shipping_pkr)}</dd></div>
-                    <div className="flex justify-between font-semibold pt-1 border-t border-border"><dt>Total</dt><dd>{formatPKR(o.total_pkr)}</dd></div>
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Subtotal</dt>
+                      <dd>{formatPKR(o.subtotal_pkr)}</dd>
+                    </div>
+                    {Number(o.discount_pkr) > 0 && (
+                      <div className="flex justify-between">
+                        <dt className="text-muted-foreground">Discount</dt>
+                        <dd className="text-copper">-{formatPKR(o.discount_pkr)}</dd>
+                      </div>
+                    )}
+                    <div className="flex justify-between">
+                      <dt className="text-muted-foreground">Shipping</dt>
+                      <dd>{Number(o.shipping_pkr) === 0 ? "Free" : formatPKR(o.shipping_pkr)}</dd>
+                    </div>
+                    <div className="flex justify-between font-semibold pt-1 border-t border-border">
+                      <dt>Total</dt>
+                      <dd>{formatPKR(o.total_pkr)}</dd>
+                    </div>
                   </dl>
                 </div>
 
                 {/* Delivery address */}
                 <div>
-                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Delivering to</div>
+                  <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                    Delivering to
+                  </div>
                   <div className="text-sm">
-                    <div className="font-medium">{addr?.full_name} <span className="text-muted-foreground font-normal">· {addr?.phone}</span></div>
-                    <div className="text-muted-foreground">{addr?.line1}{addr?.line2 ? `, ${addr.line2}` : ""}, {addr?.city}, {addr?.province}, {addr?.country}</div>
+                    <div className="font-medium">
+                      {addr?.full_name}{" "}
+                      <span className="text-muted-foreground font-normal">· {addr?.phone}</span>
+                    </div>
+                    <div className="text-muted-foreground">
+                      {addr?.line1}
+                      {addr?.line2 ? `, ${addr.line2}` : ""}, {addr?.city}, {addr?.province},{" "}
+                      {addr?.country}
+                    </div>
                   </div>
                 </div>
 

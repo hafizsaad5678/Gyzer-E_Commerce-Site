@@ -23,8 +23,11 @@ export function ProductCard({ p, fallbackImg }: { p: ProductCardData; fallbackIm
   const [adding, setAdding] = useState(false);
   const qc = useQueryClient();
 
-  const hasDiscount = p.discount_price_pkr != null && Number(p.discount_price_pkr) < Number(p.price_pkr);
-  const off = hasDiscount ? Math.round((1 - Number(p.discount_price_pkr) / Number(p.price_pkr)) * 100) : 0;
+  const hasDiscount =
+    p.discount_price_pkr != null && Number(p.discount_price_pkr) < Number(p.price_pkr);
+  const off = hasDiscount
+    ? Math.round((1 - Number(p.discount_price_pkr) / Number(p.price_pkr)) * 100)
+    : 0;
   const img = p.cover_image_url || fallbackImg;
 
   async function handleAdd(e: React.MouseEvent) {
@@ -38,11 +41,19 @@ export function ProductCard({ p, fallbackImg }: { p: ProductCardData; fallbackIm
       return;
     }
     const uid = sessionData.session.user.id;
-    const { data: existing } = await supabase.from("cart_items").select("id,quantity").eq("product_id", p.id).eq("user_id", uid).maybeSingle();
+    const { data: existing } = await supabase
+      .from("cart_items")
+      .select("id,quantity")
+      .eq("product_id", p.id)
+      .eq("user_id", uid)
+      .maybeSingle();
     const { error } = existing
-      ? await supabase.from("cart_items").update({ quantity: existing.quantity + 1 }).eq("id", existing.id)
+      ? await supabase
+          .from("cart_items")
+          .update({ quantity: existing.quantity + 1 })
+          .eq("id", existing.id)
       : await supabase.from("cart_items").insert({ product_id: p.id, quantity: 1, user_id: uid });
-    
+
     setAdding(false);
     if (error) return toast.error("Could not add to cart");
     toast.success("Added to cart");
@@ -51,12 +62,25 @@ export function ProductCard({ p, fallbackImg }: { p: ProductCardData; fallbackIm
 
   return (
     <div className="group surface-card flex flex-col h-full overflow-hidden transition-all hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5">
-      <Link to="/product/$slug" params={{ slug: p.slug }} className="flex-1 flex flex-col focus:outline-none">
+      <Link
+        to="/product/$slug"
+        params={{ slug: p.slug }}
+        className="flex-1 flex flex-col focus:outline-none"
+      >
         <div className="relative aspect-square bg-steel/40 overflow-hidden shrink-0">
           {img ? (
-            <img src={img} alt={p.name} loading="lazy" width={600} height={600} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
+            <img
+              src={img}
+              alt={p.name}
+              loading="lazy"
+              width={600}
+              height={600}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            />
           ) : (
-            <div className="grid h-full w-full place-items-center text-muted-foreground text-xs">No image</div>
+            <div className="grid h-full w-full place-items-center text-muted-foreground text-xs">
+              No image
+            </div>
           )}
           {hasDiscount && (
             <span className="absolute top-3 left-3 rounded-full bg-copper px-2.5 py-1 text-[11px] font-semibold text-copper-foreground">
@@ -69,24 +93,36 @@ export function ProductCard({ p, fallbackImg }: { p: ProductCardData; fallbackIm
             </span>
           )}
         </div>
-        
+
         <div className="p-4 flex flex-col flex-1">
-          <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">{p.brand}</div>
-          <h3 className="text-display text-lg leading-tight group-hover:text-copper transition-colors line-clamp-2">{p.name}</h3>
-          
+          <div className="text-[11px] uppercase tracking-wider text-muted-foreground mb-1.5">
+            {p.brand}
+          </div>
+          <h3 className="text-display text-lg leading-tight group-hover:text-copper transition-colors line-clamp-2">
+            {p.name}
+          </h3>
+
           <div className="text-xs text-muted-foreground flex gap-3 mt-3 mb-4">
             {p.capacity_liters ? <span>{p.capacity_liters}L</span> : null}
-            {p.warranty_months ? <span>{Math.round(p.warranty_months / 12)}yr warranty</span> : null}
+            {p.warranty_months ? (
+              <span>{Math.round(p.warranty_months / 12)}yr warranty</span>
+            ) : null}
           </div>
-          
+
           <div className="flex items-baseline gap-2 pt-3 border-t border-border mt-auto">
             {hasDiscount ? (
               <>
-                <span className="text-lg font-semibold text-foreground">{formatPKR(p.discount_price_pkr!)}</span>
-                <span className="text-xs text-muted-foreground line-through">{formatPKR(p.price_pkr)}</span>
+                <span className="text-lg font-semibold text-foreground">
+                  {formatPKR(p.discount_price_pkr!)}
+                </span>
+                <span className="text-xs text-muted-foreground line-through">
+                  {formatPKR(p.price_pkr)}
+                </span>
               </>
             ) : (
-              <span className="text-lg font-semibold text-foreground">{formatPKR(p.price_pkr)}</span>
+              <span className="text-lg font-semibold text-foreground">
+                {formatPKR(p.price_pkr)}
+              </span>
             )}
           </div>
         </div>

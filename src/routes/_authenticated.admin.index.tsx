@@ -4,8 +4,19 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { Package, AlertTriangle, ShoppingCart, TrendingUp, Users, BarChart2 } from "lucide-react";
 import {
-  AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
 } from "recharts";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -23,7 +34,10 @@ function buildRevenueChart(orders: any[]) {
     map[key] = 0;
   }
   orders.forEach((o) => {
-    const key = new Date(o.created_at).toLocaleDateString("en-PK", { day: "2-digit", month: "short" });
+    const key = new Date(o.created_at).toLocaleDateString("en-PK", {
+      day: "2-digit",
+      month: "short",
+    });
     if (key in map) map[key] += Number(o.total_pkr);
   });
   return Object.entries(map).map(([date, revenue]) => ({ date, revenue }));
@@ -32,7 +46,9 @@ function buildRevenueChart(orders: any[]) {
 // Build order status breakdown
 function buildStatusChart(orders: any[]) {
   const map: Record<string, number> = {};
-  orders.forEach((o) => { map[o.status] = (map[o.status] ?? 0) + 1; });
+  orders.forEach((o) => {
+    map[o.status] = (map[o.status] ?? 0) + 1;
+  });
   return Object.entries(map).map(([name, value]) => ({ name, value }));
 }
 
@@ -47,7 +63,13 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 function Dashboard() {
-  const [stats, setStats] = useState<any>({ revenue: 0, orders: 0, products: 0, customers: 0, lowStock: [] });
+  const [stats, setStats] = useState<any>({
+    revenue: 0,
+    orders: 0,
+    products: 0,
+    customers: 0,
+    lowStock: [],
+  });
   const [recent, setRecent] = useState<any[]>([]);
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [statusData, setStatusData] = useState<any[]>([]);
@@ -64,10 +86,21 @@ function Dashboard() {
         { data: customers },
         { data: orderItems },
       ] = await Promise.all([
-        supabase.from("orders").select("id,total_pkr,status,payment_status,created_at").order("created_at"),
+        supabase
+          .from("orders")
+          .select("id,total_pkr,status,payment_status,created_at")
+          .order("created_at"),
         supabase.from("products").select("id"),
-        supabase.from("products").select("id,name,sku,stock,low_stock_threshold").lte("stock", 5).order("stock"),
-        supabase.from("orders").select("id,order_number,email,total_pkr,status,created_at").order("created_at", { ascending: false }).limit(8),
+        supabase
+          .from("products")
+          .select("id,name,sku,stock,low_stock_threshold")
+          .lte("stock", 5)
+          .order("stock"),
+        supabase
+          .from("orders")
+          .select("id,order_number,email,total_pkr,status,created_at")
+          .order("created_at", { ascending: false })
+          .limit(8),
         supabase.from("profiles").select("id"),
         supabase.from("order_items").select("product_id,product_name,quantity,subtotal_pkr"),
       ]);
@@ -87,7 +120,13 @@ function Dashboard() {
         .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 6);
 
-      setStats({ revenue, orders: orders.length, products: products?.length ?? 0, customers: customers?.length ?? 0, lowStock: lowStock ?? [] });
+      setStats({
+        revenue,
+        orders: orders.length,
+        products: products?.length ?? 0,
+        customers: customers?.length ?? 0,
+        lowStock: lowStock ?? [],
+      });
       setRecent(recentOrders ?? []);
       setRevenueData(buildRevenueChart(orders));
       setStatusData(buildStatusChart(orders));
@@ -101,7 +140,9 @@ function Dashboard() {
       <div className="space-y-6 animate-pulse">
         <div className="h-8 bg-secondary rounded w-48" />
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => <div key={i} className="surface-card h-24" />)}
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="surface-card h-24" />
+          ))}
         </div>
       </div>
     );
@@ -111,7 +152,9 @@ function Dashboard() {
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Overview</div>
+        <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+          Overview
+        </div>
         <h1 className="text-display text-4xl">Analytics Dashboard</h1>
       </div>
 
@@ -138,13 +181,35 @@ function Dashboard() {
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="date" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} interval={4} />
-            <YAxis tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`} />
+            <XAxis
+              dataKey="date"
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tickLine={false}
+              axisLine={false}
+              interval={4}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(v) => `Rs ${(v / 1000).toFixed(0)}k`}
+            />
             <Tooltip
-              contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+              contentStyle={{
+                background: "var(--card)",
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                fontSize: 12,
+              }}
               formatter={(v: any) => [formatPKR(v), "Revenue"]}
             />
-            <Area type="monotone" dataKey="revenue" stroke="#b87333" strokeWidth={2} fill="url(#revGrad)" />
+            <Area
+              type="monotone"
+              dataKey="revenue"
+              stroke="#b87333"
+              strokeWidth={2}
+              fill="url(#revGrad)"
+            />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -160,12 +225,34 @@ function Dashboard() {
             <p className="text-sm text-muted-foreground">No sales data yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
-              <BarChart data={topProducts} layout="vertical" margin={{ left: 8, right: 16, top: 0, bottom: 0 }}>
+              <BarChart
+                data={topProducts}
+                layout="vertical"
+                margin={{ left: 8, right: 16, top: 0, bottom: 0 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "var(--muted-foreground)" }} tickLine={false} axisLine={false} width={100} />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  tickLine={false}
+                  axisLine={false}
+                  width={100}
+                />
                 <Tooltip
-                  contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  contentStyle={{
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
                   formatter={(v: any) => [formatPKR(v), "Revenue"]}
                 />
                 <Bar dataKey="revenue" fill="#b87333" radius={[0, 4, 4, 0]} />
@@ -182,12 +269,28 @@ function Dashboard() {
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
-                <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={false}>
+                <Pie
+                  data={statusData}
+                  dataKey="value"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  labelLine={false}
+                >
                   {statusData.map((entry) => (
                     <Cell key={entry.name} fill={STATUS_COLORS[entry.name] ?? "#94a3b8"} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }} />
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--card)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
                 <Legend iconSize={10} iconType="circle" wrapperStyle={{ fontSize: 11 }} />
               </PieChart>
             </ResponsiveContainer>
@@ -200,7 +303,9 @@ function Dashboard() {
         <div className="surface-card p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-display text-xl">Recent orders</h2>
-            <Link to="/admin/orders" className="text-xs text-copper hover:underline">View all</Link>
+            <Link to="/admin/orders" className="text-xs text-copper hover:underline">
+              View all
+            </Link>
           </div>
           {recent.length === 0 ? (
             <p className="text-sm text-muted-foreground">No orders yet.</p>
@@ -214,7 +319,9 @@ function Dashboard() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-sm font-semibold">{formatPKR(o.total_pkr)}</div>
-                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">{o.status}</div>
+                    <div className="text-[11px] uppercase tracking-wider text-muted-foreground">
+                      {o.status}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -237,7 +344,10 @@ function Dashboard() {
           ) : (
             <div className="space-y-2">
               {stats.lowStock.map((p: any) => (
-                <div key={p.id} className="flex justify-between items-center py-2.5 border-b border-border last:border-0">
+                <div
+                  key={p.id}
+                  className="flex justify-between items-center py-2.5 border-b border-border last:border-0"
+                >
                   <div>
                     <div className="text-sm font-medium">{p.name}</div>
                     <div className="text-xs text-muted-foreground font-mono">{p.sku}</div>
@@ -255,7 +365,17 @@ function Dashboard() {
   );
 }
 
-function Stat({ icon: Icon, label, value, accent }: { icon: any; label: string; value: string; accent?: boolean }) {
+function Stat({
+  icon: Icon,
+  label,
+  value,
+  accent,
+}: {
+  icon: any;
+  label: string;
+  value: string;
+  accent?: boolean;
+}) {
   return (
     <div className={`surface-card p-5 ${accent ? "ring-1 ring-destructive/30" : ""}`}>
       <Icon className={`h-5 w-5 mb-3 ${accent ? "text-destructive" : "text-copper"}`} />

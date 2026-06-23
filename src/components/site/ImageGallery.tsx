@@ -22,8 +22,12 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
     setZoomPos({ x, y });
   }
 
-  function prev() { setActive((a) => (a - 1 + imgs.length) % imgs.length); }
-  function next() { setActive((a) => (a + 1) % imgs.length); }
+  function prev() {
+    setActive((a) => (a - 1 + imgs.length) % imgs.length);
+  }
+  function next() {
+    setActive((a) => (a + 1) % imgs.length);
+  }
 
   return (
     <>
@@ -46,7 +50,9 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
               draggable={false}
             />
           ) : (
-            <div className="grid h-full place-items-center text-muted-foreground text-sm">No image</div>
+            <div className="grid h-full place-items-center text-muted-foreground text-sm">
+              No image
+            </div>
           )}
 
           {/* Zoom hint */}
@@ -60,14 +66,20 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
           {imgs.length > 1 && (
             <>
               <button
-                onClick={(e) => { e.stopPropagation(); prev(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
+                }}
                 className="absolute left-2 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full bg-background/80 backdrop-blur-sm shadow text-foreground hover:bg-background transition"
                 aria-label="Previous image"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
               <button
-                onClick={(e) => { e.stopPropagation(); next(); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
                 className="absolute right-2 top-1/2 -translate-y-1/2 grid h-8 w-8 place-items-center rounded-full bg-background/80 backdrop-blur-sm shadow text-foreground hover:bg-background transition"
                 aria-label="Next image"
               >
@@ -88,7 +100,11 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
                 aria-label={`View image ${i + 1}`}
               >
                 {img.url ? (
-                  <img src={img.url} alt={img.alt ?? `${productName} ${i + 1}`} className="h-full w-full object-cover" />
+                  <img
+                    src={img.url}
+                    alt={img.alt ?? `${productName} ${i + 1}`}
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   <div className="h-full w-full bg-steel/40" />
                 )}
@@ -113,10 +129,24 @@ export function ImageGallery({ images, productName }: ImageGalleryProps) {
           </button>
           {imgs.length > 1 && (
             <>
-              <button onClick={(e) => { e.stopPropagation(); prev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground hover:bg-border" aria-label="Previous">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prev();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground hover:bg-border"
+                aria-label="Previous"
+              >
                 <ChevronLeft className="h-5 w-5" />
               </button>
-              <button onClick={(e) => { e.stopPropagation(); next(); }} className="absolute right-4 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground hover:bg-border" aria-label="Next">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  next();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 grid h-10 w-10 place-items-center rounded-full bg-secondary text-foreground hover:bg-border"
+                aria-label="Next"
+              >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </>

@@ -74,10 +74,12 @@ export function OrderStatusNotifier() {
               duration: 8000,
               action: {
                 label: "View order",
-                onClick: () => { window.location.href = "/account/orders"; },
+                onClick: () => {
+                  window.location.href = "/account/orders";
+                },
               },
             });
-          }
+          },
         )
         .subscribe();
     });

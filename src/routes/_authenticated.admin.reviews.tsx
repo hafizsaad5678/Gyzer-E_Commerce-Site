@@ -19,7 +19,10 @@ import {
 const reviewsOpts = queryOptions({
   queryKey: ["admin_reviews"],
   queryFn: async () => {
-    const { data, error } = await supabase.from("reviews").select("*").order("created_at", { ascending: false });
+    const { data, error } = await supabase
+      .from("reviews")
+      .select("*")
+      .order("created_at", { ascending: false });
     if (error) throw error;
     return data ?? [];
   },
@@ -57,7 +60,9 @@ function AdminReviews() {
   return (
     <div>
       <div className="mb-8">
-        <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">Testimonials</div>
+        <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
+          Testimonials
+        </div>
         <h1 className="text-display text-4xl">Manage Reviews</h1>
       </div>
 
@@ -86,7 +91,10 @@ function AdminReviews() {
                   <td className="p-4">
                     <div className="flex gap-0.5 text-copper">
                       {Array.from({ length: 5 }).map((_, i) => (
-                        <Star key={i} className={`h-3.5 w-3.5 ${i < r.rating ? "fill-current" : "opacity-30"}`} />
+                        <Star
+                          key={i}
+                          className={`h-3.5 w-3.5 ${i < r.rating ? "fill-current" : "opacity-30"}`}
+                        />
                       ))}
                     </div>
                   </td>
@@ -98,12 +106,18 @@ function AdminReviews() {
                       <button
                         onClick={() => toggleApproval(r.id, r.is_approved)}
                         className={`inline-flex items-center gap-1.5 rounded border px-2.5 py-1.5 text-xs font-medium transition-colors ${
-                          r.is_approved 
-                            ? "border-green-500/30 bg-green-500/10 text-green-600 hover:bg-green-500/20" 
+                          r.is_approved
+                            ? "border-green-500/30 bg-green-500/10 text-green-600 hover:bg-green-500/20"
                             : "border-border bg-secondary hover:bg-secondary/80 text-muted-foreground"
                         }`}
                       >
-                        {r.is_approved ? <><Check className="h-3 w-3" /> Approved</> : "Approve"}
+                        {r.is_approved ? (
+                          <>
+                            <Check className="h-3 w-3" /> Approved
+                          </>
+                        ) : (
+                          "Approve"
+                        )}
                       </button>
                       <AlertDialog>
                         <AlertDialogTrigger asChild>
@@ -118,7 +132,8 @@ function AdminReviews() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Review</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete this review? This action cannot be undone.
+                              Are you sure you want to delete this review? This action cannot be
+                              undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>

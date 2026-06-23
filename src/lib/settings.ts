@@ -13,7 +13,11 @@ export const siteSettingsOpts = queryOptions({
       address: "Industrial Area, Gujranwala, Pakistan",
     };
     try {
-      const { data, error } = await supabase.from("site_settings").select("*").eq("id", 1).maybeSingle();
+      const { data, error } = await supabase
+        .from("site_settings")
+        .select("*")
+        .eq("id", 1)
+        .maybeSingle();
       if (error && error.code !== "PGRST205") throw error;
       return data ?? defaultSettings;
     } catch (e) {
