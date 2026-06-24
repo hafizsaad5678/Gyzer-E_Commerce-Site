@@ -85,7 +85,8 @@ function Cart() {
  (s, i) => s + Number(i.product?.discount_price_pkr ?? i.product?.price_pkr ?? 0) * i.quantity,
  0,
  );
- const shipping = calcShipping(subtotal);
+ // City unknown at cart stage — pass empty string; same-city savings shown at checkout
+ const shipping = calcShipping(subtotal, rows, "");
  const total = Math.max(0, subtotal - discount + shipping);
 
  // Not signed in

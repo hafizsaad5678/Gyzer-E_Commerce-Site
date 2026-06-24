@@ -49,6 +49,8 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  cover_image_url: initial?.cover_image_url ?? "",
  is_active: initial?.is_active ?? true,
  is_featured: initial?.is_featured ?? false,
+ shipping_fee_pkr: initial?.shipping_fee_pkr ?? "",
+ same_city_free: initial?.same_city_free ?? true,
  });
 
  const [specs, setSpecs] = useState<Array<{ k: string; v: string }>>(() => {
@@ -112,6 +114,8 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  is_active: form.is_active,
  is_featured: form.is_featured,
  specifications: specsObj,
+ shipping_fee_pkr: form.shipping_fee_pkr === "" ? null : Number(form.shipping_fee_pkr),
+ same_city_free: form.same_city_free,
  };
 
  const { error } = isEdit
@@ -247,6 +251,44 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  className={inputCls}
  />
  </Field>
+ </div>
+
+ {/* Shipping charges */}
+ <div className="mt-6 p-4 rounded-lg border border-border bg-secondary/30 space-y-3">
+ <div className="text-xs font-semibold uppercase tracking-wider text-copper mb-1">
+ Shipping charges
+ </div>
+ <div className="grid sm:grid-cols-2 gap-4">
+ <Field label="Custom shipping fee (PKR)">
+ <input
+ type="number"
+ min={0}
+ value={form.shipping_fee_pkr}
+ onChange={(e) => set("shipping_fee_pkr", e.target.value as any)}
+ placeholder="Leave blank for global rates"
+ className={inputCls}
+ />
+ <p className="text-[11px] text-muted-foreground mt-1">
+ If set, overrides the global tier. Blank = use global subtotal tiers.
+ </p>
+ </Field>
+ <div className="flex flex-col justify-center gap-2 mt-2">
+ <label className="inline-flex items-start gap-2.5 text-sm cursor-pointer">
+ <input
+ type="checkbox"
+ checked={form.same_city_free}
+ onChange={(e) => set("same_city_free", e.target.checked)}
+ className="h-4 w-4 mt-0.5"
+ />
+ <span>
+ Free shipping for Gujranwala city
+ <span className="block text-[11px] text-muted-foreground mt-0.5">
+ Customers with city "Gujranwala" always pay Rs 0
+ </span>
+ </span>
+ </label>
+ </div>
+ </div>
  </div>
 
  <Field label="Short description" className="mt-4">

@@ -12,7 +12,7 @@ import {
 import { AddressForm, type AddressFields } from "@/components/checkout/AddressForm";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
-import { calcShipping } from "@/lib/shipping";
+import { calcShipping, isSameCity } from "@/lib/shipping";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -75,7 +75,13 @@ function Checkout() {
  (s, i) => s + Number(i.products?.discount_price_pkr ?? i.products?.price_pkr ?? 0) * i.quantity,
  0,
  );
- const shipping = calcShipping(subtotal);
+ // Resolve the city from the currently selected/entered address
+ const resolvedCity = (() => {
+ if (useNew) return newAddr.city;
+ const a = addresses.find((x: any) => x.id === selectedAddr);
+ return a?.city ?? "";
+ })();
+ const shipping = calcShipping(subtotal, items, resolvedCity);
  const total = Math.max(0, subtotal - discount + shipping);
 
  async function placeOrder() {
@@ -347,6 +353,11 @@ function Checkout() {
  discount={discount}
  shipping={shipping}
  total={total}
+ shippingLabel={
+ resolvedCity && isSameCity(resolvedCity)
+ ? "Free (same city 🎉)"
+ : undefined
+ }
  />
 
  <button
