@@ -22,61 +22,73 @@ export const Route = createFileRoute("/_authenticated/account/orders")({
 });
 
 const statusColor: Record<string, string> = {
- pending: "bg-secondary text-muted-foreground",
- paid: "bg-success/15 text-success",
- processing: "bg-accent text-copper",
- shipped: "bg-primary/10 text-primary",
- delivered: "bg-success/15 text-success",
- cancelled: "bg-destructive/10 text-destructive",
- refunded: "bg-destructive/10 text-destructive",
+  pending: "bg-secondary text-muted-foreground",
+  payment_verified: "bg-green-500/20 text-green-600",
+  paid: "bg-success/15 text-success",
+  processing: "bg-accent text-copper",
+  shipped: "bg-primary/10 text-primary",
+  delivered: "bg-success/15 text-success",
+  cancelled: "bg-destructive/10 text-destructive",
+  refunded: "bg-destructive/10 text-destructive",
 };
 
 // Visual order tracking steps
 const STEPS = ["pending", "processing", "shipped", "delivered"] as const;
-type OrderStatus = (typeof STEPS)[number] | "paid" | "cancelled" | "refunded";
+type OrderStatus = (typeof STEPS)[number] | "paid" | "cancelled" | "refunded" | "payment_verified";
 
 function TrackingBar({ status }: { status: string }) {
- if (status === "cancelled" || status === "refunded") {
- return (
- <div className="flex items-center gap-2 text-sm text-destructive mt-3">
- <span className="h-2 w-2 rounded-full bg-destructive" />
- Order {status}
- </div>
- );
- }
- // Normalize "paid" → "processing" for display
- const displayStatus = status === "paid" ? "processing" : status;
- const activeIdx = STEPS.indexOf(displayStatus as any);
+  if (status === "cancelled" || status === "refunded") {
+    return (
+      <div className="flex items-center gap-2 text-sm text-destructive mt-3">
+        <span className="h-2 w-2 rounded-full bg-destructive" />
+        Order {status}
+      </div>
+    );
+  }
+  if (status === "payment_verified") {
+    return (
+      <div className="mt-3 flex items-center gap-2.5 rounded-lg bg-green-500/10 border border-green-500/20 px-4 py-3">
+        <span className="text-green-500 text-lg">✅</span>
+        <div>
+          <div className="text-sm font-semibold text-green-600">Payment Verified</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Admin confirmed your payment. Your order is being prepared.</div>
+        </div>
+      </div>
+    );
+  }
+  // Normalize "paid" → "processing" for display
+  const displayStatus = status === "paid" ? "processing" : status;
+  const activeIdx = STEPS.indexOf(displayStatus as any);
 
- return (
- <div className="mt-4">
- <div className="flex items-center gap-0">
- {STEPS.map((step, i) => {
- const done = i <= activeIdx;
- const isLast = i === STEPS.length - 1;
- return (
- <div key={step} className="flex items-center flex-1 last:flex-none">
- <div
- className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors ${done ? "bg-copper" : "bg-border"}`}
- />
- {!isLast && (
- <div
- className={`h-0.5 flex-1 transition-colors ${i < activeIdx ? "bg-copper" : "bg-border"}`}
- />
- )}
- </div>
- );
- })}
- </div>
- <div className="flex justify-between mt-1.5">
- {STEPS.map((step) => (
- <span key={step} className="text-[10px] capitalize text-muted-foreground">
- {step}
- </span>
- ))}
- </div>
- </div>
- );
+  return (
+    <div className="mt-4">
+      <div className="flex items-center gap-0">
+        {STEPS.map((step, i) => {
+          const done = i <= activeIdx;
+          const isLast = i === STEPS.length - 1;
+          return (
+            <div key={step} className="flex items-center flex-1 last:flex-none">
+              <div
+                className={`h-2.5 w-2.5 rounded-full shrink-0 transition-colors ${done ? "bg-copper" : "bg-border"}`}
+              />
+              {!isLast && (
+                <div
+                  className={`h-0.5 flex-1 transition-colors ${i < activeIdx ? "bg-copper" : "bg-border"}`}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      <div className="flex justify-between mt-1.5">
+        {STEPS.map((step) => (
+          <span key={step} className="text-[10px] capitalize text-muted-foreground">
+            {step}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function Orders() {
@@ -140,7 +152,7 @@ function Orders() {
  <span
  className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider ${statusColor[o.status] ?? "bg-secondary"}`}
  >
- {o.status}
+ {o.status === "payment_verified" ? "✅ Payment Verified" : o.status}
  </span>
  {isOpen ? (
  <ChevronUp className="h-4 w-4 text-muted-foreground" />

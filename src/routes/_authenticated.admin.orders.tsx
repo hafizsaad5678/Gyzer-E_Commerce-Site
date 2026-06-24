@@ -6,13 +6,14 @@ import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
 
 const statuses = [
- "pending",
- "paid",
- "processing",
- "shipped",
- "delivered",
- "cancelled",
- "refunded",
+  "pending",
+  "payment_verified",
+  "paid",
+  "processing",
+  "shipped",
+  "delivered",
+  "cancelled",
+  "refunded",
 ] as const;
 type OrderStatus = (typeof statuses)[number];
 
@@ -135,19 +136,20 @@ function AdminOrders() {
  <th className="text-left px-4 py-3">Date</th>
  <th className="text-right px-4 py-3">Total</th>
  <th className="text-left px-4 py-3">Status</th>
+ <th className="text-left px-4 py-3">Payment</th>
  <th className="text-left px-4 py-3">Tracking Details</th>
  </tr>
  </thead>
  <tbody className="divide-y divide-border">
  {isLoading ? (
  <tr>
- <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+ <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
  Loading…
  </td>
  </tr>
  ) : orders.length === 0 ? (
  <tr>
- <td colSpan={6} className="px-4 py-12 text-center text-muted-foreground">
+ <td colSpan={7} className="px-4 py-12 text-center text-muted-foreground">
  No orders yet.
  </td>
  </tr>
@@ -172,10 +174,27 @@ function AdminOrders() {
  >
  {statuses.map((s) => (
  <option key={s} value={s}>
- {s}
+ {s === "payment_verified" ? "✅ Payment Verified" : s}
  </option>
  ))}
  </select>
+ </td>
+ <td className="px-4 py-3">
+ {o.status === "pending" ? (
+ <button
+ onClick={() => statusMutation.mutate({ order: o, newStatus: "payment_verified" })}
+ disabled={statusMutation.isPending}
+ className="inline-flex items-center gap-1 rounded-md bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 whitespace-nowrap"
+ >
+ ✅ Verify Payment
+ </button>
+ ) : o.status === "payment_verified" ? (
+ <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 text-green-600 px-2.5 py-0.5 text-xs font-semibold">
+ ✅ Verified
+ </span>
+ ) : (
+ <span className="text-xs text-muted-foreground">—</span>
+ )}
  </td>
  <td className="px-4 py-3">
  <div className="flex flex-col gap-1.5">

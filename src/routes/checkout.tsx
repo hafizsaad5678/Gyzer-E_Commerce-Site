@@ -155,23 +155,27 @@ function Checkout() {
  return toast.error(oiErr.message);
  }
 
- // Decrement stock and send low-stock alerts if needed
- await Promise.all(
- items.map(async (i: any) => {
- const currentStock = i.products.stock ?? 0;
- const newStock = Math.max(0, currentStock - i.quantity);
- await supabase.rpc("decrement_stock", { p_id: i.products.id, qty: i.quantity });
- if (currentStock >= 5 && newStock < 5) {
- await supabase.from("contact_messages").insert({
- name: "System Alert",
- email: "system@asifbrothers.com",
- subject: `Low Stock Alert: ${i.products.name}`,
- message: `The product "${i.products.name}" has just dropped to ${newStock} items in stock after a recent purchase. Please restock soon!`,
- is_read: false,
- });
- }
- }),
- );
+  // Decrement stock and send low-stock alerts if needed
+  await Promise.all(
+    items.map(async (i: any) => {
+      const currentStock = i.products.stock ?? 0;
+      const newStock = Math.max(0, currentStock - i.quantity);
+      // Direct update — more reliable than RPC
+      await supabase
+        .from("products")
+        .update({ stock: newStock })
+        .eq("id", i.products.id);
+      if (currentStock >= 5 && newStock < 5) {
+        await supabase.from("contact_messages").insert({
+          name: "System Alert",
+          email: "system@asifbrothers.com",
+          subject: `Low Stock Alert: ${i.products.name}`,
+          message: `The product "${i.products.name}" has just dropped to ${newStock} items in stock after a recent purchase. Please restock soon!`,
+          is_read: false,
+        });
+      }
+    }),
+  );
 
  // Clear cart
  await supabase.from("cart_items").delete().eq("user_id", user_id);
