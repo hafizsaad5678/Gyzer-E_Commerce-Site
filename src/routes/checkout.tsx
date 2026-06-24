@@ -13,7 +13,7 @@ import { AddressForm, type AddressFields } from "@/components/checkout/AddressFo
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { calcShipping, resolveZone, shippingZoneLabel } from "@/lib/shipping";
-import { ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({
@@ -50,6 +50,10 @@ function Checkout() {
  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cod");
  const [newAddr, setNewAddr] = useState<AddressFields>(EMPTY_ADDRESS);
  const [useNew, setUseNew] = useState(false);
+ // committedAddr is what shipping is actually calculated from for new addresses
+ // It only updates when the user clicks "Calculate Shipping"
+ const [committedAddr, setCommittedAddr] = useState<AddressFields | null>(null);
+ const [shippingCalculated, setShippingCalculated] = useState(false);
 
  useEffect(() => {
  (async () => {
@@ -75,10 +79,12 @@ function Checkout() {
  (s, i) => s + Number(i.products?.discount_price_pkr ?? i.products?.price_pkr ?? 0) * i.quantity,
  0,
  );
- // Resolve the address from the currently selected/entered option
+ // Resolve the address for shipping calc:
+ // - saved address: use immediately
+ // - new address: only use committedAddr (set when user clicks Calculate Shipping)
  const resolvedAddr = (() => {
- if (useNew) return newAddr;
- return addresses.find((x: any) => x.id === selectedAddr) ?? newAddr;
+ if (useNew) return committedAddr ?? EMPTY_ADDRESS;
+ return addresses.find((x: any) => x.id === selectedAddr) ?? EMPTY_ADDRESS;
  })();
  const zone = resolveZone(
  resolvedAddr.city ?? "",
@@ -87,6 +93,14 @@ function Checkout() {
  );
  const shipping = calcShipping(subtotal, items, resolvedAddr.city ?? "", resolvedAddr.province ?? "", resolvedAddr.country ?? "Pakistan");
  const total = Math.max(0, subtotal - discount + shipping);
+
+ function handleCalculateShipping() {
+ if (!newAddr.city || !newAddr.province) {
+ return toast.error("Please enter city and province to calculate shipping");
+ }
+ setCommittedAddr({ ...newAddr });
+ setShippingCalculated(true);
+ }
 
  async function placeOrder() {
  if (items.length === 0) return toast.error("Cart is empty");
@@ -306,7 +320,26 @@ function Checkout() {
  </label>
  </div>
  )}
- {useNew && <AddressForm value={newAddr} onChange={setNewAddr} />}
+ {useNew && <AddressForm value={newAddr} onChange={(v) => {
+ setNewAddr(v);
+ // Reset shipping when address changes so user must recalculate
+ if (shippingCalculated) setShippingCalculated(false);
+ }} />}
+ {useNew && (
+ <button
+ type="button"
+ onClick={handleCalculateShipping}
+ className="inline-flex items-center gap-2 rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2 text-sm font-medium"
+ >
+ <MapPin className="h-4 w-4" />
+ {shippingCalculated ? "Recalculate shipping" : "Calculate shipping"}
+ </button>
+ )}
+ {useNew && shippingCalculated && (
+ <p className="text-xs text-success">
+ ✓ Shipping calculated for {committedAddr?.city}, {committedAddr?.province} — {formatPKR(shipping)}
+ </p>
+ )}
  </div>
 
  {/* Payment method */}
@@ -373,8 +406,10 @@ function Checkout() {
  shipping={shipping}
  total={total}
  shippingLabel={
- shipping === 0
+ (!useNew || shippingCalculated) && shipping === 0
  ? `Free · ${shippingZoneLabel(zone)}`
+ : useNew && !shippingCalculated
+ ? "Enter address to calculate"
  : undefined
  }
  />

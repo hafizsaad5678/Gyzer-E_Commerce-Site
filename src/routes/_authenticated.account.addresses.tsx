@@ -130,7 +130,12 @@ function Addresses() {
   function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    addMutation.mutate(new FormData(form), {
+    const fd = new FormData(form);
+    const phone = String(fd.get("phone") ?? "");
+    const postal = String(fd.get("postal_code") ?? "");
+    if (phone.length < 9) return toast.error("Phone must be 9–11 digits");
+    if (postal && postal.length < 4) return toast.error("Postal code must be 4–6 digits");
+    addMutation.mutate(fd, {
       onSuccess: () => {
         form.reset();
         setAdding(false);
@@ -164,6 +169,8 @@ function Addresses() {
     if (!editForm.full_name || !editForm.phone || !editForm.line1 || !editForm.city || !editForm.province) {
       return toast.error("Please fill in all required fields");
     }
+    if (editForm.phone.length < 9) return toast.error("Phone must be 9–11 digits");
+    if (editForm.postal_code && editForm.postal_code.length < 4) return toast.error("Postal code must be 4–6 digits");
     editMutation.mutate({ id: editingId, data: editForm });
   }
 
@@ -338,7 +345,8 @@ function Addresses() {
 
 // ─── Field helpers ────────────────────────────────────────────────────────────
 
-/** Uncontrolled field for the add form (uses FormData) */
+/** Uncontrolled field for the add form (uses FormData).
+ *  phone and postal_code get digit-only filtering. */
 function F({
   label,
   name,
@@ -352,6 +360,10 @@ function F({
   placeholder?: string;
   className?: string;
 }) {
+  const isPhone  = name === "phone";
+  const isPostal = name === "postal_code";
+  const maxLen   = isPhone ? 11 : isPostal ? 6 : undefined;
+
   return (
     <div className={className}>
       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
@@ -361,27 +373,51 @@ function F({
       <input
         name={name}
         required={required}
-        placeholder={placeholder}
+        placeholder={placeholder ?? (isPhone ? "03001234567 (9–11 digits)" : isPostal ? "Postal code (4–6 digits)" : undefined)}
+        inputMode={isPhone || isPostal ? "numeric" : undefined}
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+        onChange={
+          isPhone || isPostal
+            ? (e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, maxLen!);
+                e.target.value = digits;
+              }
+            : undefined
+        }
       />
     </div>
   );
 }
 
-/** Controlled field for the inline edit form */
+/** Controlled field for the inline edit form.
+ *  phone and postal_code get digit-only filtering. */
 function EF({
   label,
   value,
   onChange,
   placeholder,
   className = "",
+  fieldName,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   className?: string;
+  fieldName?: string;
 }) {
+  const isPhone  = fieldName === "phone"  || label.toLowerCase().includes("phone");
+  const isPostal = fieldName === "postal" || label.toLowerCase().includes("postal");
+  const maxLen   = isPhone ? 11 : isPostal ? 6 : undefined;
+
+  function handleChange(raw: string) {
+    if (isPhone || isPostal) {
+      onChange(raw.replace(/\D/g, "").slice(0, maxLen!));
+    } else {
+      onChange(raw);
+    }
+  }
+
   return (
     <div className={className}>
       <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
@@ -389,8 +425,9 @@ function EF({
       </label>
       <input
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
+        onChange={(e) => handleChange(e.target.value)}
+        placeholder={placeholder ?? (isPhone ? "03001234567 (9–11 digits)" : isPostal ? "Postal code (4–6 digits)" : undefined)}
+        inputMode={isPhone || isPostal ? "numeric" : undefined}
         className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
       />
     </div>

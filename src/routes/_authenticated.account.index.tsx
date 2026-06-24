@@ -24,16 +24,34 @@ function Profile() {
  const { email, profile } = data;
  const qc = useQueryClient();
  const [loading, setLoading] = useState(false);
+ const [fullName, setFullName] = useState(profile.full_name ?? "");
+ const [phone, setPhone] = useState(
+ // strip anything that isn't a digit on load so existing bad values are cleaned
+ (profile.phone ?? "").replace(/\D/g, "").slice(0, 11),
+ );
+ const [phoneErr, setPhoneErr] = useState<string | null>(null);
+
+ function handlePhone(raw: string) {
+ const digits = raw.replace(/\D/g, "").slice(0, 11);
+ setPhone(digits);
+ if (digits && digits.length < 9) {
+ setPhoneErr("Phone must be 9–11 digits");
+ } else {
+ setPhoneErr(null);
+ }
+ }
 
  async function save(e: React.FormEvent<HTMLFormElement>) {
  e.preventDefault();
- const f = new FormData(e.currentTarget);
+ if (phone && phone.length < 9) {
+ return toast.error("Phone number must be 9–11 digits");
+ }
  setLoading(true);
  const { data: u } = await supabase.auth.getUser();
  const { error } = await supabase.from("profiles").upsert({
  id: u.user!.id,
- full_name: String(f.get("full_name") ?? "").trim(),
- phone: String(f.get("phone") ?? "").trim(),
+ full_name: fullName.trim(),
+ phone: phone || null,
  });
  setLoading(false);
  if (error) return toast.error("Could not save");
@@ -48,13 +66,27 @@ function Profile() {
  Keep this up to date so we can reach you about your orders.
  </p>
  <form onSubmit={save} className="space-y-4">
- <Field label="Full name" name="full_name" defaultValue={profile.full_name ?? ""} />
- <Field
- label="Phone"
+ <Field label="Full name" name="full_name" value={fullName} onChange={setFullName} />
+
+ {/* Phone — controlled, digits only */}
+ <div>
+ <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
+ Phone
+ </label>
+ <input
  name="phone"
- defaultValue={profile.phone ?? ""}
- placeholder="+92 300 0000000"
+ value={phone}
+ onChange={(e) => handlePhone(e.target.value)}
+ placeholder="03001234567 (9–11 digits)"
+ inputMode="numeric"
+ className={`w-full rounded-md border px-3 py-2.5 text-sm bg-background ${
+ phoneErr ? "border-destructive" : "border-input"
+ }`}
  />
+ {phoneErr && <p className="text-xs text-destructive mt-1">{phoneErr}</p>}
+ <p className="text-[10px] text-muted-foreground mt-1">Digits only, e.g. 03001234567</p>
+ </div>
+
  <div>
  <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1.5 block">
  Email
@@ -79,6 +111,8 @@ function Profile() {
 function Field(props: {
  label: string;
  name: string;
+ value?: string;
+ onChange?: (val: string) => void;
  defaultValue?: string;
  placeholder?: string;
 }) {
@@ -89,7 +123,9 @@ function Field(props: {
  </label>
  <input
  name={props.name}
- defaultValue={props.defaultValue}
+ value={props.value}
+ defaultValue={props.value === undefined ? props.defaultValue : undefined}
+ onChange={props.onChange ? (e) => props.onChange!(e.target.value) : undefined}
  placeholder={props.placeholder}
  className="w-full rounded-md border border-input bg-background px-3 py-2.5 text-sm"
  />
