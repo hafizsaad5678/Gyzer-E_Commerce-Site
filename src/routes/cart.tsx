@@ -22,7 +22,7 @@ const cartOpts = queryOptions({
  const { data, error } = await supabase
  .from("cart_items")
  .select(
- "id,quantity,products(id,slug,name,brand,price_pkr,discount_price_pkr,cover_image_url,stock,categories(slug))",
+ "id,quantity,products(id,slug,name,brand,price_pkr,discount_price_pkr,cover_image_url,stock,shipping_zones,categories(slug))",
  )
  .order("created_at");
  if (error) throw error;

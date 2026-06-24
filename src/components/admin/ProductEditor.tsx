@@ -3,10 +3,11 @@
  * Extracted from _authenticated.admin.products.tsx.
  */
 import { useState } from "react";
-import { Upload, X } from "lucide-react";
+import { Upload, X, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadProductImage } from "@/lib/upload";
+import type { ShippingZones } from "@/lib/shipping";
 
 export type Category = { id: string; name: string; slug: string };
 type Product = any; // keep loose — matches the existing pattern
@@ -49,8 +50,15 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  cover_image_url: initial?.cover_image_url ?? "",
  is_active: initial?.is_active ?? true,
  is_featured: initial?.is_featured ?? false,
- shipping_fee_pkr: initial?.shipping_fee_pkr ?? "",
- same_city_free: initial?.same_city_free ?? true,
+ });
+
+ // ── Shipping zones (4 tiers) ────────────────────────────────────────────────
+ const initZones: ShippingZones = initial?.shipping_zones ?? {};
+ const [zones, setZones] = useState({
+ city:          initZones.city          != null ? String(initZones.city)          : "",
+ province:      initZones.province      != null ? String(initZones.province)      : "",
+ country:       initZones.country       != null ? String(initZones.country)       : "",
+ international: initZones.international != null ? String(initZones.international) : "",
  });
 
  const [specs, setSpecs] = useState<Array<{ k: string; v: string }>>(() => {
@@ -114,8 +122,14 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  is_active: form.is_active,
  is_featured: form.is_featured,
  specifications: specsObj,
- shipping_fee_pkr: form.shipping_fee_pkr === "" ? null : Number(form.shipping_fee_pkr),
- same_city_free: form.same_city_free,
+ shipping_zones: (() => {
+ const sz: ShippingZones = {};
+ if (zones.city          !== "") sz.city          = Number(zones.city);
+ if (zones.province      !== "") sz.province      = Number(zones.province);
+ if (zones.country       !== "") sz.country       = Number(zones.country);
+ if (zones.international !== "") sz.international = Number(zones.international);
+ return Object.keys(sz).length > 0 ? sz : null;
+ })(),
  };
 
  const { error } = isEdit
@@ -253,41 +267,45 @@ export function ProductEditor({ initial, categories, onClose, onSaved }: Props) 
  </Field>
  </div>
 
- {/* Shipping charges */}
- <div className="mt-6 p-4 rounded-lg border border-border bg-secondary/30 space-y-3">
- <div className="text-xs font-semibold uppercase tracking-wider text-copper mb-1">
+ {/* Shipping zones */}
+ <div className="mt-6 rounded-lg border border-border bg-secondary/30 overflow-hidden">
+ <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-secondary/50">
+ <Truck className="h-4 w-4 text-copper" />
+ <span className="text-xs font-semibold uppercase tracking-wider text-copper">
  Shipping charges
+ </span>
+ <span className="ml-auto text-[11px] text-muted-foreground">
+ Leave blank to use global rates
+ </span>
  </div>
- <div className="grid sm:grid-cols-2 gap-4">
- <Field label="Custom shipping fee (PKR)">
+ <div className="grid sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-border">
+ {(
+ [
+ { key: "city",          label: "Same city",    hint: "Gujranwala only" },
+ { key: "province",      label: "Same province", hint: "Punjab" },
+ { key: "country",       label: "Nationwide",    hint: "All of Pakistan" },
+ { key: "international", label: "International", hint: "Outside Pakistan" },
+ ] as const
+ ).map(({ key, label, hint }) => (
+ <div key={key} className="p-4">
+ <div className="text-xs font-semibold text-foreground mb-0.5">{label}</div>
+ <div className="text-[11px] text-muted-foreground mb-2">{hint}</div>
+ <div className="relative">
+ <span className="absolute left-3 top-2 text-xs text-muted-foreground">Rs</span>
  <input
  type="number"
  min={0}
- value={form.shipping_fee_pkr}
- onChange={(e) => set("shipping_fee_pkr", e.target.value as any)}
- placeholder="Leave blank for global rates"
- className={inputCls}
+ value={zones[key]}
+ onChange={(e) => setZones((z) => ({ ...z, [key]: e.target.value }))}
+ placeholder="e.g. 0 or 1200"
+ className={inputCls + " pl-8"}
  />
- <p className="text-[11px] text-muted-foreground mt-1">
- If set, overrides the global tier. Blank = use global subtotal tiers.
- </p>
- </Field>
- <div className="flex flex-col justify-center gap-2 mt-2">
- <label className="inline-flex items-start gap-2.5 text-sm cursor-pointer">
- <input
- type="checkbox"
- checked={form.same_city_free}
- onChange={(e) => set("same_city_free", e.target.checked)}
- className="h-4 w-4 mt-0.5"
- />
- <span>
- Free shipping for Gujranwala city
- <span className="block text-[11px] text-muted-foreground mt-0.5">
- Customers with city "Gujranwala" always pay Rs 0
- </span>
- </span>
- </label>
  </div>
+ {key === "city" && zones.city === "0" && (
+ <p className="text-[11px] text-success mt-1">✓ Free for Gujranwala</p>
+ )}
+ </div>
+ ))}
  </div>
  </div>
 

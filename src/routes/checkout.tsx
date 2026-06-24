@@ -12,7 +12,7 @@ import {
 import { AddressForm, type AddressFields } from "@/components/checkout/AddressForm";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
-import { calcShipping, isSameCity } from "@/lib/shipping";
+import { calcShipping, resolveZone, shippingZoneLabel } from "@/lib/shipping";
 import { ArrowLeft, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -60,7 +60,7 @@ function Checkout() {
  }
  setEmail(s.session.user.email ?? "");
  const [{ data: ci }, { data: addr }] = await Promise.all([
- supabase.from("cart_items").select("id,quantity,products(*)").order("created_at"),
+ supabase.from("cart_items").select("id,quantity,products(id,name,sku,price_pkr,discount_price_pkr,stock,shipping_zones)").order("created_at"),
  supabase.from("addresses").select("*").order("is_default", { ascending: false }),
  ]);
  setItems(ci ?? []);
@@ -75,17 +75,26 @@ function Checkout() {
  (s, i) => s + Number(i.products?.discount_price_pkr ?? i.products?.price_pkr ?? 0) * i.quantity,
  0,
  );
- // Resolve the city from the currently selected/entered address
- const resolvedCity = (() => {
- if (useNew) return newAddr.city;
- const a = addresses.find((x: any) => x.id === selectedAddr);
- return a?.city ?? "";
+ // Resolve the address from the currently selected/entered option
+ const resolvedAddr = (() => {
+ if (useNew) return newAddr;
+ return addresses.find((x: any) => x.id === selectedAddr) ?? newAddr;
  })();
- const shipping = calcShipping(subtotal, items, resolvedCity);
+ const zone = resolveZone(
+ resolvedAddr.city ?? "",
+ resolvedAddr.province ?? "",
+ resolvedAddr.country ?? "Pakistan",
+ );
+ const shipping = calcShipping(subtotal, items, resolvedAddr.city ?? "", resolvedAddr.province ?? "", resolvedAddr.country ?? "Pakistan");
  const total = Math.max(0, subtotal - discount + shipping);
 
  async function placeOrder() {
  if (items.length === 0) return toast.error("Cart is empty");
+
+ // Validate email
+ if (!email.includes("@")) {
+ return toast.error("Please enter a valid email address");
+ }
 
  let shipping_address: any;
  if (useNew) {
@@ -96,7 +105,17 @@ function Checkout() {
  !newAddr.city ||
  !newAddr.province
  ) {
- return toast.error("Please fill in shipping address");
+ return toast.error("Please fill in all required shipping address fields");
+ }
+ const phoneDigits = newAddr.phone.replace(/\D/g, "");
+ if (phoneDigits.length < 9 || phoneDigits.length > 11) {
+ return toast.error("Phone number must be 9–11 digits");
+ }
+ if (newAddr.postal_code) {
+ const postalDigits = newAddr.postal_code.replace(/\D/g, "");
+ if (postalDigits.length < 4 || postalDigits.length > 6) {
+ return toast.error("Postal code must be 4–6 digits");
+ }
  }
  shipping_address = newAddr;
  } else {
@@ -354,8 +373,8 @@ function Checkout() {
  shipping={shipping}
  total={total}
  shippingLabel={
- resolvedCity && isSameCity(resolvedCity)
- ? "Free (same city 🎉)"
+ shipping === 0
+ ? `Free · ${shippingZoneLabel(zone)}`
  : undefined
  }
  />
