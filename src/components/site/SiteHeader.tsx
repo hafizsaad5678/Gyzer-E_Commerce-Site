@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingCart, Heart, User, Menu, X, Search } from "lucide-react";
 import { useState } from "react";
-import { BRAND } from "@/lib/format";
+import { useSiteSettings } from "@/lib/settings";
 import { useAuth } from "@/hooks/use-auth";
 import { SearchModal } from "./SearchModal";
 import { useEffect } from "react";
@@ -18,6 +18,7 @@ export function SiteHeader() {
  const [menuOpen, setMenuOpen] = useState(false);
  const [searchOpen, setSearchOpen] = useState(false);
  const { signedIn, userName } = useAuth();
+ const brand = useSiteSettings();
 
  // Cmd/Ctrl+K shortcut to open search
  useEffect(() => {
@@ -39,7 +40,7 @@ export function SiteHeader() {
  <span className="thermal-gradient grid h-9 w-9 place-items-center rounded-md font-display text-lg font-semibold">
  A
  </span>
- <span className="text-display text-lg leading-none">{BRAND.name}</span>
+ <span className="text-display text-lg leading-none">{brand.company_name}</span>
  </Link>
 
  {/* Desktop nav */}

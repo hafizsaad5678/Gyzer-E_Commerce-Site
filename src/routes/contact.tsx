@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
-import { BRAND } from "@/lib/format";
+import { useSiteSettings } from "@/lib/settings";
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -32,6 +32,7 @@ export const Route = createFileRoute("/contact")({
 function Contact() {
     const [loading, setLoading] = useState(false);
     const [showMap, setShowMap] = useState(false);
+    const brand = useSiteSettings();
 
     useEffect(() => {
         const timer = setTimeout(() => setShowMap(true), 1500);
@@ -98,8 +99,8 @@ function Contact() {
                             icon={Phone}
                             title="Call us"
                             body={
-                                <a href={`tel:${BRAND.phone}`} className="hover:text-copper">
-                                    {BRAND.phone}
+                                <a href={`tel:${brand.phone}`} className="hover:text-copper">
+                                    {brand.phone}
                                 </a>
                             }
                         />
@@ -107,12 +108,12 @@ function Contact() {
                             icon={Mail}
                             title="Email"
                             body={
-                                <a href={`mailto:${BRAND.email}`} className="hover:text-copper">
-                                    {BRAND.email}
+                                <a href={`mailto:${brand.email}`} className="hover:text-copper">
+                                    {brand.email}
                                 </a>
                             }
                         />
-                        <Info icon={MapPin} title="Head office" body={BRAND.address} />
+                        <Info icon={MapPin} title="Head office" body={brand.address} />
                         <div className="surface-card overflow-hidden h-64 relative bg-accent/30 flex items-center justify-center text-sm text-muted-foreground">
                             {showMap ? (
                                 <iframe

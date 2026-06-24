@@ -13,6 +13,7 @@ import {
  MessageCircle,
 } from "lucide-react";
 import { BRAND } from "@/lib/format";
+import { useSiteSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/order-confirmation/$id")({
  head: () => ({
@@ -27,6 +28,7 @@ function OrderConfirmation() {
  const [items, setItems] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
  const [showPopup, setShowPopup] = useState(false);
+ const brand = useSiteSettings();
 
  useEffect(() => {
  (async () => {
@@ -235,7 +237,7 @@ function OrderConfirmation() {
  WhatsApp team.
  </p>
  <div className="bg-secondary rounded-md p-4 text-sm text-center mb-6">
- WhatsApp: <span className="font-semibold text-foreground">{BRAND.phone}</span>
+ WhatsApp: <span className="font-semibold text-foreground">{brand.phone}</span>
  <br />
  Order #: <span className="font-mono text-foreground">{order.order_number}</span>
  </div>
