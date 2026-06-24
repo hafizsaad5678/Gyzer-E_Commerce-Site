@@ -1,13 +1,10 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
-@import "@fontsource/playfair-display/400.css";
-@import "@fontsource/playfair-display/500.css";
-@import "@fontsource/playfair-display/600.css";
-@import "@fontsource/playfair-display/700.css";
-@import "@fontsource/roboto/400.css";
-@import "@fontsource/roboto/500.css";
-@import "@fontsource/roboto/700.css";
+@import "@fontsource/inter/400.css";
+@import "@fontsource/inter/500.css";
+@import "@fontsource/inter/600.css";
+@import "@fontsource/inter/700.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -18,8 +15,8 @@
  */
 
 @theme inline {
-  --font-display: "Playfair Display", Georgia, serif;
-  --font-sans: "Roboto", system-ui, sans-serif;
+  --font-display: "Inter", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -180,7 +177,7 @@
   h4,
   h5 {
     font-family: var(--font-display);
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: -0.02em;
   }
 }
@@ -197,9 +194,9 @@
 
 @utility text-display {
   font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.025em;
-  line-height: 1.05;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 }
 
 @utility surface-card {

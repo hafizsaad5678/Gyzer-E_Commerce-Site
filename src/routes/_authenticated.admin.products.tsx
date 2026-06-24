@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { ProductEditor, type Category } from "@/components/admin/ProductEditor";
 import { AdminToggle } from "@/components/admin/AdminToggle";
 import { StockInput } from "@/components/admin/StockInput";
+import { ConfirmDialog } from "@/components/site/ConfirmDialog";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
@@ -63,6 +64,7 @@ function AdminProducts() {
  const [categoryFilter, setCategoryFilter] = useState(search.category ?? "");
  const [editing, setEditing] = useState<any | null>(null);
  const [showNew, setShowNew] = useState(false);
+ const [confirmId, setConfirmId] = useState<string | null>(null);
 
  const toggleMutation = useMutation({
  mutationFn: async ({
@@ -111,8 +113,7 @@ function AdminProducts() {
  });
 
  function handleRemove(id: string) {
- if (!confirm("Delete this product? This cannot be undone.")) return;
- removeMutation.mutate(id);
+ setConfirmId(id);
  }
 
  const filtered = products.filter(
@@ -278,6 +279,20 @@ function AdminProducts() {
  }}
  />
  )}
+
+ {/* Delete confirmation */}
+ <ConfirmDialog
+ open={!!confirmId}
+ title="Delete product?"
+ description="This cannot be undone. The product will be permanently removed from the catalog."
+ confirmLabel="Delete"
+ variant="destructive"
+ onConfirm={() => {
+ if (confirmId) removeMutation.mutate(confirmId);
+ setConfirmId(null);
+ }}
+ onCancel={() => setConfirmId(null)}
+ />
  </div>
  );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, ExternalLink, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/site/ConfirmDialog";
 
 // ─── Query ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ function AdminCategories() {
  const { data: cats } = useSuspenseQuery(adminCatsOpts);
  const [editing, setEditing] = useState<any | null>(null);
  const [showNew, setShowNew] = useState(false);
+ const [confirmId, setConfirmId] = useState<string | null>(null);
 
  const toggleMutation = useMutation({
  mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
@@ -66,9 +68,7 @@ function AdminCategories() {
  });
 
  function handleRemove(id: string) {
- if (!confirm("Delete this category? Any products assigned to it will lose their category."))
- return;
- removeMutation.mutate(id);
+ setConfirmId(id);
  }
 
  return (
@@ -165,6 +165,20 @@ function AdminCategories() {
  }}
  />
  )}
+
+ {/* Delete confirmation */}
+ <ConfirmDialog
+ open={!!confirmId}
+ title="Delete category?"
+ description="Any products assigned to this category will lose their category. This cannot be undone."
+ confirmLabel="Delete"
+ variant="destructive"
+ onConfirm={() => {
+ if (confirmId) removeMutation.mutate(confirmId);
+ setConfirmId(null);
+ }}
+ onCancel={() => setConfirmId(null)}
+ />
  </div>
  );
 }

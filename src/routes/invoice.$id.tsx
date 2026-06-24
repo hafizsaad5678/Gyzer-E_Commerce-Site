@@ -153,7 +153,6 @@ function InvoicePage() {
  } catch (err: any) {
  console.error("Failed to generate PDF", err);
  toast.error(err.message || "Failed to generate PDF");
- alert("Error: " + (err.message || "Failed to generate PDF"));
  } finally {
  setDownloading(false);
  }
