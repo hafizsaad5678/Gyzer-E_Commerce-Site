@@ -4,8 +4,40 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
-import { AlertTriangle, Package, Search, RefreshCw, ArrowUp, ArrowDown } from "lucide-react";
+import { AlertTriangle, Package, Search, RefreshCw, ArrowUp, ArrowDown, Download } from "lucide-react";
 import { StockInput } from "@/components/admin/StockInput";
+
+// ─── CSV export helper ────────────────────────────────────────────────────────
+
+function exportInventoryCSV(products: any[]) {
+  const header = ["Name", "SKU", "Brand", "Category", "Stock", "Threshold", "Price (PKR)", "Stock Value (PKR)", "Status"];
+  const rows = products.map((p) => {
+    const price = Number(p.discount_price_pkr ?? p.price_pkr);
+    const stockValue = p.stock * price;
+    const isOut = p.stock === 0;
+    const isLow = !isOut && p.stock <= p.low_stock_threshold;
+    const status = isOut ? "Out of stock" : isLow ? "Low stock" : "OK";
+    return [
+      `"${(p.name ?? "").replace(/"/g, '""')}"`,
+      p.sku ?? "",
+      p.brand ?? "",
+      p.categories?.name ?? "",
+      p.stock,
+      p.low_stock_threshold,
+      price,
+      stockValue,
+      status,
+    ].join(",");
+  });
+  const csv = [header.join(","), ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `inventory-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 // ─── Query ────────────────────────────────────────────────────────────────────
 
@@ -139,6 +171,13 @@ function AdminInventory() {
         >
           <RefreshCw className="h-4 w-4" />
           Refresh
+        </button>
+        <button
+          onClick={() => exportInventoryCSV(filtered)}
+          className="inline-flex items-center gap-2 rounded-md border border-input px-3 py-2 text-sm hover:bg-secondary transition-colors"
+        >
+          <Download className="h-4 w-4" />
+          Export CSV
         </button>
       </div>
 

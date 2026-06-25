@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
+import { Search } from "lucide-react";
 import {
   OrderStatusBadges,
   computeStatusCounts,
@@ -49,13 +50,22 @@ export const Route = createFileRoute("/_authenticated/admin/orders")({
 function AdminOrders() {
  const qc = useQueryClient();
  const [filter, setFilter] = useState<string>("");
+ const [search, setSearch] = useState("");
 
  const { data: allOrders = [], isLoading } = useQuery(allOrdersOpts);
 
- // Client-side filter
- const orders = filter ? allOrders.filter((o) => o.status === filter) : allOrders;
+ // Client-side filter + search
+ const orders = allOrders.filter((o) => {
+   const matchStatus = !filter || o.status === filter;
+   const q = search.toLowerCase();
+   const matchSearch =
+     !q ||
+     (o.order_number ?? "").toLowerCase().includes(q) ||
+     (o.email ?? "").toLowerCase().includes(q);
+   return matchStatus && matchSearch;
+ });
 
- // Compute status counts
+ // Compute status counts (from all orders, not filtered)
  const statusCounts = computeStatusCounts(allOrders);
 
  const statusMutation = useMutation({
@@ -126,9 +136,21 @@ function AdminOrders() {
  </div>
  <h1 className="text-display text-4xl">Orders</h1>
  <p className="text-sm text-muted-foreground mt-1">
- {allOrders.length} total orders
+ {allOrders.length} total · showing {orders.length}
  </p>
  </div>
+ <div className="flex items-center gap-2 flex-wrap">
+ {/* Search */}
+ <div className="relative">
+ <Search className="h-4 w-4 absolute left-3 top-2.5 text-muted-foreground" />
+ <input
+ value={search}
+ onChange={(e) => setSearch(e.target.value)}
+ placeholder="Order # or email…"
+ className="rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm w-52"
+ />
+ </div>
+ {/* Status dropdown */}
  <select
  value={filter}
  onChange={(e) => setFilter(e.target.value)}
@@ -141,6 +163,7 @@ function AdminOrders() {
  </option>
  ))}
  </select>
+ </div>
  </div>
 
  {/* Status count badges */}
