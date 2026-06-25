@@ -56,7 +56,7 @@ export const Route = createFileRoute("/shop")({
  content:
  "Browse all electric, gas, instant and solar geysers from Asif Brothers. Filter by category, price, and capacity.",
  },
- { property: "og:title", content: "Shop Geysers — Asif Brothers" },
+ { property: "og:title", content: "Shop Geysers Asif Brothers" },
  ],
  }),
  loader: async ({ context }) => {

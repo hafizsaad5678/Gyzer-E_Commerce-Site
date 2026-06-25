@@ -65,7 +65,7 @@ const relatedOpts = (categoryId: string | null, excludeId: string) =>
 export const Route = createFileRoute("/product/$slug")({
  head: ({ params }) => ({
  meta: [
- { title: `${params.slug} — Asif Brothers` },
+ { title: `${params.slug} Asif Brothers` },
  {
  name: "description",
  content: `View specifications and price for ${params.slug} from Asif Brothers.`,
@@ -161,6 +161,9 @@ function ProductPage() {
  return;
  }
  setAdding(true);
+ const { data: { user } } = await supabase.auth.getUser();
+ if (!user) { setAdding(false); return; }
+
  const { data: existing } = await supabase
  .from("cart_items")
  .select("id,quantity")
@@ -176,7 +179,7 @@ function ProductPage() {
  : await supabase.from("cart_items").insert({
  product_id: (p as any).id,
  quantity: qty,
- user_id: (await supabase.auth.getUser()).data.user!.id,
+ user_id: user.id,
  });
  setAdding(false);
  if (error) return toast.error("Could not add to cart");
@@ -189,10 +192,11 @@ function ProductPage() {
  toast.info("Please sign in to save items");
  return;
  }
- const uid = (await supabase.auth.getUser()).data.user!.id;
+ const { data: { user } } = await supabase.auth.getUser();
+ if (!user) return;
  const { error } = await supabase
  .from("wishlist_items")
- .insert({ product_id: (p as any).id, user_id: uid });
+ .insert({ product_id: (p as any).id, user_id: user.id });
  if (error?.message.includes("duplicate")) return toast.info("Already in wishlist");
  if (error) return toast.error("Could not save");
  toast.success("Saved to wishlist");
@@ -213,7 +217,7 @@ function ProductPage() {
  energy_rating: p.energy_rating,
  category_name: (p as any).categories?.name ?? null,
  });
- if (added) toast.success("Added to comparison — visit /compare to compare");
+ if (added) toast.success("Added to comparison visit /compare to compare");
  else toast.info("Already in comparison list or list is full (max 3)");
  }
 

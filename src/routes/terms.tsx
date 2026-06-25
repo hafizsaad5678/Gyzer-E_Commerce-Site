@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/site/PolicyPage";
 
 export const Route = createFileRoute("/terms")({
- head: () => ({ meta: [{ title: "Terms & Conditions — Asif Brothers" }] }),
+ head: () => ({ meta: [{ title: "Terms & Conditions Asif Brothers" }] }),
  component: () => (
  <PolicyPage
  title="Terms & Conditions"

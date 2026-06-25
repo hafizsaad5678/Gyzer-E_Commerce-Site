@@ -44,7 +44,7 @@ const OPTIONS: Option[] = [
  {
  id: "card",
  label: "Card payment",
- desc: "Coming soon — secure card checkout.",
+ desc: "Coming soon secure card checkout.",
  icon: <CreditCard className="h-5 w-5 mt-0.5" />,
  disabled: true,
  },

@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Plus, Pencil, ExternalLink, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/site/ConfirmDialog";
+import { inputCls } from "@/lib/styles";
 
 // ─── Query ────────────────────────────────────────────────────────────────────
 
@@ -184,8 +185,6 @@ function AdminCategories() {
 }
 
 // ─── CategoryEditor modal ─────────────────────────────────────────────────────
-
-const inputCls = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
 function CategoryEditor({
  initial,

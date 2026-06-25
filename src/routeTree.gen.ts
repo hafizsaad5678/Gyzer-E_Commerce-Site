@@ -42,6 +42,7 @@ import { Route as AuthenticatedAdminReviewsRouteImport } from './routes/_authent
 import { Route as AuthenticatedAdminProductsRouteImport } from './routes/_authenticated.admin.products'
 import { Route as AuthenticatedAdminOrdersRouteImport } from './routes/_authenticated.admin.orders'
 import { Route as AuthenticatedAdminMessagesRouteImport } from './routes/_authenticated.admin.messages'
+import { Route as AuthenticatedAdminInventoryRouteImport } from './routes/_authenticated.admin.inventory'
 import { Route as AuthenticatedAdminCustomersRouteImport } from './routes/_authenticated.admin.customers'
 import { Route as AuthenticatedAdminCategoriesRouteImport } from './routes/_authenticated.admin.categories'
 import { Route as AuthenticatedAdminAbandonedCartsRouteImport } from './routes/_authenticated.admin.abandoned-carts'
@@ -220,6 +221,12 @@ const AuthenticatedAdminMessagesRoute =
     path: '/messages',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminInventoryRoute =
+  AuthenticatedAdminInventoryRouteImport.update({
+    id: '/inventory',
+    path: '/inventory',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCustomersRoute =
   AuthenticatedAdminCustomersRouteImport.update({
     id: '/customers',
@@ -296,6 +303,7 @@ export interface FileRoutesByFullPath {
   '/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -334,6 +342,7 @@ export interface FileRoutesByTo {
   '/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/admin/inventory': typeof AuthenticatedAdminInventoryRoute
   '/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -377,6 +386,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/abandoned-carts': typeof AuthenticatedAdminAbandonedCartsRoute
   '/_authenticated/admin/categories': typeof AuthenticatedAdminCategoriesRoute
   '/_authenticated/admin/customers': typeof AuthenticatedAdminCustomersRoute
+  '/_authenticated/admin/inventory': typeof AuthenticatedAdminInventoryRoute
   '/_authenticated/admin/messages': typeof AuthenticatedAdminMessagesRoute
   '/_authenticated/admin/orders': typeof AuthenticatedAdminOrdersRoute
   '/_authenticated/admin/products': typeof AuthenticatedAdminProductsRoute
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/admin/abandoned-carts'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/inventory'
     | '/admin/messages'
     | '/admin/orders'
     | '/admin/products'
@@ -458,6 +469,7 @@ export interface FileRouteTypes {
     | '/admin/abandoned-carts'
     | '/admin/categories'
     | '/admin/customers'
+    | '/admin/inventory'
     | '/admin/messages'
     | '/admin/orders'
     | '/admin/products'
@@ -500,6 +512,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/abandoned-carts'
     | '/_authenticated/admin/categories'
     | '/_authenticated/admin/customers'
+    | '/_authenticated/admin/inventory'
     | '/_authenticated/admin/messages'
     | '/_authenticated/admin/orders'
     | '/_authenticated/admin/products'
@@ -767,6 +780,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminMessagesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/inventory': {
+      id: '/_authenticated/admin/inventory'
+      path: '/inventory'
+      fullPath: '/admin/inventory'
+      preLoaderRoute: typeof AuthenticatedAdminInventoryRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/customers': {
       id: '/_authenticated/admin/customers'
       path: '/customers'
@@ -842,6 +862,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAbandonedCartsRoute: typeof AuthenticatedAdminAbandonedCartsRoute
   AuthenticatedAdminCategoriesRoute: typeof AuthenticatedAdminCategoriesRoute
   AuthenticatedAdminCustomersRoute: typeof AuthenticatedAdminCustomersRoute
+  AuthenticatedAdminInventoryRoute: typeof AuthenticatedAdminInventoryRoute
   AuthenticatedAdminMessagesRoute: typeof AuthenticatedAdminMessagesRoute
   AuthenticatedAdminOrdersRoute: typeof AuthenticatedAdminOrdersRoute
   AuthenticatedAdminProductsRoute: typeof AuthenticatedAdminProductsRoute
@@ -854,6 +875,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAbandonedCartsRoute: AuthenticatedAdminAbandonedCartsRoute,
   AuthenticatedAdminCategoriesRoute: AuthenticatedAdminCategoriesRoute,
   AuthenticatedAdminCustomersRoute: AuthenticatedAdminCustomersRoute,
+  AuthenticatedAdminInventoryRoute: AuthenticatedAdminInventoryRoute,
   AuthenticatedAdminMessagesRoute: AuthenticatedAdminMessagesRoute,
   AuthenticatedAdminOrdersRoute: AuthenticatedAdminOrdersRoute,
   AuthenticatedAdminProductsRoute: AuthenticatedAdminProductsRoute,

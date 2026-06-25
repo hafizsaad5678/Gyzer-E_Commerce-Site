@@ -12,6 +12,7 @@ import {
  ShoppingBag,
  Settings,
  Star,
+ Warehouse,
 } from "lucide-react";
 import { Toaster } from "sonner";
 import { NotificationBell } from "@/components/admin/NotificationBell";
@@ -23,6 +24,7 @@ export const Route = createFileRoute("/_authenticated/admin")({
 const nav = [
  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
  { to: "/admin/products", label: "Products", icon: Package },
+ { to: "/admin/inventory", label: "Inventory", icon: Warehouse },
  { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
  { to: "/admin/categories", label: "Categories", icon: FolderTree },
  { to: "/admin/customers", label: "Customers", icon: Users },

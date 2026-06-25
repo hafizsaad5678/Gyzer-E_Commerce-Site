@@ -6,7 +6,7 @@ import { Star } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 
 export const Route = createFileRoute("/write-review")({
- head: () => ({ meta: [{ title: "Write a Review — Asif Brothers" }] }),
+ head: () => ({ meta: [{ title: "Write a Review Asif Brothers" }] }),
  component: WriteReview,
 });
 
@@ -46,9 +46,9 @@ function WriteReview() {
  const { error } = await supabase.from("reviews").insert({
  product_id: form.product_id,
  user_id: session?.user?.id ?? null,
- title: form.customer_name,
+ title: form.customer_name.trim(),
  rating: form.rating,
- body: form.comment,
+ body: form.comment.trim(),
  is_approved: false,
  });
 

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
-import { Package, AlertTriangle, ShoppingCart, TrendingUp, Users, BarChart2 } from "lucide-react";
+import { Package, AlertTriangle, ShoppingCart, TrendingUp, Users, BarChart2, FileDown } from "lucide-react";
 import {
  AreaChart,
  Area,
@@ -18,6 +18,9 @@ import {
  Cell,
  Legend,
 } from "recharts";
+import { SalesMetrics, type SalesData } from "@/components/admin/SalesMetrics";
+import { downloadReportPDF, type ReportData } from "@/lib/report-pdf";
+import { computeStatusCounts } from "@/components/admin/OrderStatusBadges";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
  component: Dashboard,
@@ -70,27 +73,40 @@ function Dashboard() {
  customers: 0,
  lowStock: [],
  });
+ const [salesData, setSalesData] = useState<SalesData>({
+ grossSales: 0,
+ shippingCollected: 0,
+ discountsGiven: 0,
+ netSales: 0,
+ totalRevenue: 0,
+ estimatedCost: 0,
+ profit: 0,
+ });
  const [recent, setRecent] = useState<any[]>([]);
+ const [allOrders, setAllOrders] = useState<any[]>([]);
  const [revenueData, setRevenueData] = useState<any[]>([]);
  const [statusData, setStatusData] = useState<any[]>([]);
  const [topProducts, setTopProducts] = useState<any[]>([]);
+ const [allProducts, setAllProducts] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
+ const [loadError, setLoadError] = useState<string | null>(null);
 
  useEffect(() => {
  (async () => {
+ try {
  const [
- { data: allOrders },
- { data: products },
- { data: lowStock },
- { data: recentOrders },
- { data: customers },
- { data: orderItems },
+ { data: allOrders, error: e1 },
+ { data: products, error: e2 },
+ { data: lowStock, error: e3 },
+ { data: recentOrders, error: e4 },
+ { data: customers, error: e5 },
+ { data: orderItems, error: e6 },
  ] = await Promise.all([
  supabase
  .from("orders")
- .select("id,total_pkr,status,payment_status,created_at")
+ .select("id,total_pkr,subtotal_pkr,shipping_pkr,discount_pkr,status,payment_status,created_at")
  .order("created_at"),
- supabase.from("products").select("id"),
+ supabase.from("products").select("id,name,sku,stock,low_stock_threshold,price_pkr,discount_price_pkr,is_active"),
  supabase
  .from("products")
  .select("id,name,sku,stock,low_stock_threshold")
@@ -105,8 +121,34 @@ function Dashboard() {
  supabase.from("order_items").select("product_id,product_name,quantity,subtotal_pkr"),
  ]);
 
+ const firstError = e1 ?? e2 ?? e3 ?? e4 ?? e5 ?? e6;
+ if (firstError) throw new Error(firstError.message);
+
  const orders = allOrders ?? [];
  const revenue = orders.reduce((s, o) => s + Number(o.total_pkr), 0);
+
+ // ── Sales metrics ────────────────────────────────────────────────────────
+ const grossSales = orders.reduce((s, o) => {
+   // prefer subtotal_pkr; fall back to total_pkr minus shipping/discount if available
+   const sub = Number(o.subtotal_pkr ?? o.total_pkr ?? 0);
+   return s + sub;
+ }, 0);
+ const shippingCollected = orders.reduce((s, o) => s + Number(o.shipping_pkr ?? 0), 0);
+ const discountsGiven = orders.reduce((s, o) => s + Number(o.discount_pkr ?? 0), 0);
+ const netSales = grossSales - discountsGiven;
+ const totalRevenue = netSales + shippingCollected;
+ // estimatedCost: if products have cost_price we'd use it; for now 0
+ const estimatedCost = 0;
+
+ const salesMetrics: SalesData = {
+   grossSales,
+   shippingCollected,
+   discountsGiven,
+   netSales,
+   totalRevenue,
+   estimatedCost,
+   profit: totalRevenue - estimatedCost,
+ };
 
  // Top products by revenue
  const productMap: Record<string, { name: string; revenue: number; qty: number }> = {};
@@ -127,11 +169,18 @@ function Dashboard() {
  customers: customers?.length ?? 0,
  lowStock: lowStock ?? [],
  });
+ setAllOrders(orders);
+ setAllProducts(products ?? []);
+ setSalesData(salesMetrics);
  setRecent(recentOrders ?? []);
  setRevenueData(buildRevenueChart(orders));
  setStatusData(buildStatusChart(orders));
  setTopProducts(top);
+ } catch (err: any) {
+ setLoadError(err.message ?? "Failed to load dashboard data");
+ } finally {
  setLoading(false);
+ }
  })();
  }, []);
 
@@ -148,14 +197,65 @@ function Dashboard() {
  );
  }
 
+ if (loadError) {
+ return (
+ <div className="surface-card p-12 text-center space-y-3">
+ <p className="text-destructive font-medium">Failed to load dashboard</p>
+ <p className="text-sm text-muted-foreground">{loadError}</p>
+ <button
+ onClick={() => window.location.reload()}
+ className="rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-5 py-2 text-sm font-medium"
+ >
+ Retry
+ </button>
+ </div>
+ );
+ }
+
+ function handleDownloadReport() {
+ const now = new Date();
+ const thirtyDaysAgo = new Date(now);
+ thirtyDaysAgo.setDate(now.getDate() - 30);
+
+ const reportData: ReportData = {
+ period: {
+ from: thirtyDaysAgo.toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" }),
+ to: now.toLocaleDateString("en-PK", { day: "2-digit", month: "short", year: "numeric" }),
+ },
+ sales: salesData,
+ orderCounts: Object.fromEntries(
+ Object.entries(computeStatusCounts(allOrders)).filter(([k]) => k !== "total"),
+ ),
+ topProducts,
+ inventory: allProducts.map((p) => ({
+ name: p.name,
+ sku: p.sku,
+ stock: p.stock,
+ price_pkr: Number(p.discount_price_pkr ?? p.price_pkr),
+ low_stock_threshold: p.low_stock_threshold,
+ })),
+ generatedAt: now.toLocaleString("en-PK"),
+ };
+ downloadReportPDF(reportData, "Asif Brothers");
+ }
+
  return (
  <div className="space-y-8">
  {/* Header */}
+ <div className="flex items-end justify-between gap-4 flex-wrap">
  <div>
  <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
  Overview
  </div>
  <h1 className="text-display text-4xl">Analytics Dashboard</h1>
+ </div>
+ <button
+ onClick={handleDownloadReport}
+ className="inline-flex items-center gap-2 rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2.5 text-sm font-medium"
+ >
+ <FileDown className="h-4 w-4" />
+ Download Report PDF
+ </button>
  </div>
 
  {/* KPI cards */}
@@ -166,10 +266,16 @@ function Dashboard() {
  <Stat icon={Users} label="Customers" value={stats.customers.toLocaleString()} />
  </div>
 
+ {/* Sales metrics */}
+ <div>
+ <h2 className="text-display text-xl mb-4">Sales Breakdown</h2>
+ <SalesMetrics data={salesData} />
+ </div>
+
  {/* Revenue area chart */}
  <div className="surface-card p-6">
  <div className="flex items-center justify-between mb-5">
- <h2 className="text-display text-xl">Revenue — last 30 days</h2>
+ <h2 className="text-display text-xl">Revenue last 30 days</h2>
  <span className="text-xs text-muted-foreground">{formatPKR(stats.revenue)} total</span>
  </div>
  <ResponsiveContainer width="100%" height={220}>

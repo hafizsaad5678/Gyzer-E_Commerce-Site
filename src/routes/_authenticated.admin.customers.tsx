@@ -9,7 +9,7 @@ const customersOpts = queryOptions({
  queryFn: async () => {
  const { data, error } = await supabase
  .from("profiles")
- .select("id,full_name,phone,created_at")
+ .select("id,full_name,email,phone,created_at")
  .order("created_at", { ascending: false });
  if (error) throw error;
  return data ?? [];
@@ -44,6 +44,7 @@ function AdminCustomers() {
  <thead className="bg-secondary text-xs uppercase tracking-wider text-muted-foreground">
  <tr>
  <th className="text-left px-4 py-3">Name</th>
+ <th className="text-left px-4 py-3">Email</th>
  <th className="text-left px-4 py-3">Phone</th>
  <th className="text-left px-4 py-3">Joined</th>
  </tr>
@@ -52,6 +53,7 @@ function AdminCustomers() {
  {profiles.map((p) => (
  <tr key={p.id}>
  <td className="px-4 py-3 font-medium">{p.full_name ?? "—"}</td>
+ <td className="px-4 py-3 text-muted-foreground">{(p as any).email ?? "—"}</td>
  <td className="px-4 py-3 text-muted-foreground">{p.phone ?? "—"}</td>
  <td className="px-4 py-3 text-muted-foreground">
  {new Date(p.created_at).toLocaleDateString("en-PK")}
@@ -60,7 +62,7 @@ function AdminCustomers() {
  ))}
  {profiles.length === 0 && (
  <tr>
- <td colSpan={3} className="px-4 py-12 text-center text-muted-foreground">
+ <td colSpan={4} className="px-4 py-12 text-center text-muted-foreground">
  No customers yet.
  </td>
  </tr>

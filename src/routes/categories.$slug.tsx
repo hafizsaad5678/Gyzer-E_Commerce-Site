@@ -31,7 +31,7 @@ const opts = (slug: string) =>
 export const Route = createFileRoute("/categories/$slug")({
  head: ({ params }) => ({
  meta: [
- { title: `${params.slug} geysers — Asif Brothers` },
+ { title: `${params.slug} geysers Asif Brothers` },
  { name: "description", content: `Shop ${params.slug} geysers from Asif Brothers.` },
  ],
  }),

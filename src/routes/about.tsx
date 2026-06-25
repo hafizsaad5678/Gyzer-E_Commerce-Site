@@ -5,7 +5,7 @@ import { ShieldCheck, Truck, Wrench, Award, Users, Factory } from "lucide-react"
 export const Route = createFileRoute("/about")({
     head: () => ({
         meta: [
-            { title: "About Asif Brothers — 25+ Years of Heating Pakistan" },
+            { title: "About Asif Brothers 25+ Years of Heating Pakistan" },
             {
                 name: "description",
                 content:

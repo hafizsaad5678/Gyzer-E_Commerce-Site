@@ -7,12 +7,11 @@ import { Upload, X, Truck } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadProductImage } from "@/lib/upload";
+import { inputCls } from "@/lib/styles";
 import type { ShippingZones } from "@/lib/shipping";
 
 export type Category = { id: string; name: string; slug: string };
 type Product = any; // keep loose — matches the existing pattern
-
-const inputCls = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
 function slugify(s: string) {
  return s

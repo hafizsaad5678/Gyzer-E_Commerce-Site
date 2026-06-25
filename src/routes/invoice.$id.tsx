@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatPKR, BRAND } from "@/lib/format";
+import { formatPKR } from "@/lib/format";
+import { inputCls } from "@/lib/styles";
+import { useSiteSettings } from "@/lib/settings";
 import { Printer, ArrowLeft, Download } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import jsPDF from "jspdf";
@@ -10,13 +12,14 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/invoice/$id")({
  head: () => ({
- meta: [{ title: "Invoice — Asif Brothers" }, { name: "robots", content: "noindex" }],
+ meta: [{ title: "Invoice Asif Brothers" }, { name: "robots", content: "noindex" }],
  }),
  component: InvoicePage,
 });
 
 function InvoicePage() {
  const { id } = Route.useParams();
+ const brand = useSiteSettings();
  const [order, setOrder] = useState<any>(null);
  const [items, setItems] = useState<any[]>([]);
  const [loading, setLoading] = useState(true);
@@ -25,12 +28,16 @@ function InvoicePage() {
 
  useEffect(() => {
  (async () => {
+ const { data: { session } } = await supabase.auth.getSession();
  const [{ data: o }, { data: oi }] = await Promise.all([
  supabase.from("orders").select("*").eq("id", id).maybeSingle(),
  supabase.from("order_items").select("*").eq("order_id", id),
  ]);
+ // Only show if signed in and order belongs to this user
+ if (o && session && o.user_id === session.user.id) {
  setOrder(o);
  setItems(oi ?? []);
+ }
  setLoading(false);
  })();
  }, [id]);
@@ -57,12 +64,12 @@ function InvoicePage() {
  // Header
  doc.setFontSize(22);
  doc.setTextColor(2, 8, 23);
- doc.text(BRAND.name, 40, 60);
+ doc.text(brand.company_name, 40, 60);
  doc.setFontSize(10);
  doc.setTextColor(100, 116, 139);
- doc.text(BRAND.address, 40, 80);
- doc.text(BRAND.phone, 40, 95);
- doc.text(BRAND.email, 40, 110);
+ doc.text(brand.address, 40, 80);
+ doc.text(brand.phone, 40, 95);
+ doc.text(brand.email, 40, 110);
 
  // Title
  doc.setFontSize(26);
@@ -218,10 +225,10 @@ function InvoicePage() {
  {/* Header */}
  <div className="flex items-start justify-between mb-10 gap-6">
  <div>
- <div className="text-2xl font-bold text-foreground mb-0.5">{BRAND.name}</div>
- <div className="text-sm text-muted-foreground">{BRAND.address}</div>
- <div className="text-sm text-muted-foreground">{BRAND.phone}</div>
- <div className="text-sm text-muted-foreground">{BRAND.email}</div>
+ <div className="text-2xl font-bold text-foreground mb-0.5">{brand.company_name}</div>
+ <div className="text-sm text-muted-foreground">{brand.address}</div>
+ <div className="text-sm text-muted-foreground">{brand.phone}</div>
+ <div className="text-sm text-muted-foreground">{brand.email}</div>
  </div>
  <div className="text-right">
  <div className="text-3xl font-bold text-foreground tracking-tight">INVOICE</div>
@@ -318,11 +325,9 @@ function InvoicePage() {
 
  {/* Footer */}
  <div className="border-t border-border pt-6 text-xs text-muted-foreground text-center space-y-1">
- <p>Thank you for shopping with {BRAND.name}!</p>
- <p>
- For any queries, contact us at {BRAND.email} or {BRAND.phone}
- </p>
- <p>{BRAND.address}</p>
+ <p>Thank you for shopping with {brand.company_name}!</p>
+ <p>For any queries, contact us at {brand.email} or {brand.phone}</p>
+ <p>{brand.address}</p>
  </div>
  </div>
 

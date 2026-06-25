@@ -11,6 +11,39 @@ import { catImg } from "@/lib/cat-images";
 import useEmblaCarousel from "embla-carousel-react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+// ─── Shared ReviewCard component ──────────────────────────────────────────────
+function ReviewCard({ review }: { review: { id: string; rating: number; title: string | null; body: string | null } }) {
+  return (
+    <figure className="bg-gradient-to-br from-[oklch(0.28_0.04_235)] to-[oklch(0.42_0.1_45)] border border-[oklch(0.28_0.04_235)] rounded-2xl p-8 sm:p-10 flex flex-col h-full relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_24px_48px_oklch(0.1_0.03_235/0.8)] hover:border-copper/30">
+      <div className="absolute -top-4 -right-2 text-9xl text-white/[0.03] font-serif leading-none select-none pointer-events-none group-hover:text-copper/[0.05] transition-colors duration-500">
+        &rdquo;
+      </div>
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-copper/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+      <div className="absolute inset-0 thermal-gradient opacity-0 group-hover:opacity-[0.05] transition-opacity duration-500" />
+      <div className="flex gap-1.5 text-copper relative z-10 mb-6">
+        {Array.from({ length: 5 }).map((_, k) => (
+          <Star key={k} className={`h-4 w-4 sm:h-5 sm:w-5 ${k < review.rating ? "fill-current" : "fill-transparent stroke-[oklch(0.35_0.04_235)] stroke-2"}`} />
+        ))}
+      </div>
+      <blockquote className="text-display text-lg sm:text-xl leading-relaxed flex-1 text-[oklch(0.95_0.005_80)] relative z-10 mb-8 font-light">
+        "{review.body}"
+      </blockquote>
+      <figcaption className="flex items-center gap-4 relative z-10 mt-auto">
+        <div className="h-10 w-10 shrink-0 rounded-full bg-[oklch(0.25_0.04_235)] border border-[oklch(0.35_0.04_235)] flex items-center justify-center text-copper font-serif text-lg">
+          {(review.title || "C")[0].toUpperCase()}
+        </div>
+        <div>
+          <div className="text-sm font-semibold text-[oklch(0.9_0.005_80)] tracking-wide">{review.title || "Customer"}</div>
+          <div className="text-[10px] uppercase tracking-widest text-copper/80 mt-0.5 flex items-center gap-1.5">
+            <ShieldCheck className="h-3 w-3" />
+            Verified Buyer
+          </div>
+        </div>
+      </figcaption>
+    </figure>
+  );
+}
+
 const featuredOpts = queryOptions({
   queryKey: ["products", "featured"],
   queryFn: async () => {
@@ -60,13 +93,13 @@ const reviewsOpts = queryOptions({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Asif Brothers — Premium Geysers for Pakistan" },
+      { title: "Asif Brothers Premium Geysers for Pakistan" },
       {
         name: "description",
         content:
           "Shop electric, gas, instant and solar geysers from Asif Brothers. Trusted by Pakistani families since 1998.",
       },
-      { property: "og:title", content: "Asif Brothers — Premium Geysers for Pakistan" },
+      { property: "og:title", content: "Asif Brothers Premium Geysers for Pakistan" },
       {
         property: "og:description",
         content: "Shop electric, gas, instant and solar geysers from Asif Brothers.",
@@ -279,34 +312,7 @@ function Home() {
               <div className="flex gap-8 touch-pan-y">
                 {reviews.map((t) => (
                   <div key={t.id} className="flex-[0_0_100%] md:flex-[0_0_calc(33.333%-1.33rem)] min-w-0 pb-4">
-                    <figure className="bg-gradient-to-br from-[oklch(0.28_0.04_235)] to-[oklch(0.42_0.1_45)] border border-[oklch(0.28_0.04_235)] rounded-2xl p-8 sm:p-10 flex flex-col h-full relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_24px_48px_oklch(0.1_0.03_235/0.8)] hover:border-copper/30">
-                      {/* Large background quote */}
-                      <div className="absolute -top-4 -right-2 text-9xl text-white/[0.03] font-serif leading-none select-none pointer-events-none group-hover:text-copper/[0.05] transition-colors duration-500">
-                        &rdquo;
-                      </div>
-                      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-copper/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                      <div className="absolute inset-0 thermal-gradient opacity-0 group-hover:opacity-[0.05] transition-opacity duration-500" />
-                      <div className="flex gap-1.5 text-copper relative z-10 mb-6">
-                        {Array.from({ length: 5 }).map((_, k) => (
-                          <Star key={k} className={`h-4 w-4 sm:h-5 sm:w-5 ${k < t.rating ? "fill-current" : "fill-transparent stroke-[oklch(0.35_0.04_235)] stroke-2"}`} />
-                        ))}
-                      </div>
-                      <blockquote className="text-display text-lg sm:text-xl leading-relaxed flex-1 text-[oklch(0.95_0.005_80)] relative z-10 mb-8 font-light">
-                        "{t.body}"
-                      </blockquote>
-                      <figcaption className="flex items-center gap-4 relative z-10 mt-auto">
-                        <div className="h-10 w-10 shrink-0 rounded-full bg-[oklch(0.25_0.04_235)] border border-[oklch(0.35_0.04_235)] flex items-center justify-center text-copper font-serif text-lg">
-                          {(t.title || "C")[0].toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="text-sm font-semibold text-[oklch(0.9_0.005_80)] tracking-wide">{t.title || "Customer"}</div>
-                          <div className="text-[10px] uppercase tracking-widest text-copper/80 mt-0.5 flex items-center gap-1.5">
-                            <ShieldCheck className="h-3 w-3" />
-                            Verified Buyer
-                          </div>
-                        </div>
-                      </figcaption>
-                    </figure>
+                    <ReviewCard review={t} />
                   </div>
                 ))}
               </div>
@@ -321,45 +327,7 @@ function Home() {
         ) : (
           <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {reviews.map((t) => (
-              <figure key={t.id} className="bg-gradient-to-br from-[oklch(0.28_0.04_235)] to-[oklch(0.42_0.1_45)] border border-[oklch(0.28_0.04_235)] rounded-2xl p-8 sm:p-10 flex flex-col relative overflow-hidden group hover:-translate-y-2 transition-all duration-500 hover:shadow-[0_24px_48px_oklch(0.1_0.03_235/0.8)] hover:border-copper/30">
-                {/* Large background quote */}
-                <div className="absolute -top-4 -right-2 text-9xl text-white/[0.03] font-serif leading-none select-none pointer-events-none group-hover:text-copper/[0.05] transition-colors duration-500">
-                  &rdquo;
-                </div>
-
-                {/* Subtle top gradient line */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-copper/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-
-                <div className="absolute inset-0 thermal-gradient opacity-0 group-hover:opacity-[0.05] transition-opacity duration-500" />
-
-                <div className="flex gap-1.5 text-copper relative z-10 mb-6">
-                  {Array.from({ length: 5 }).map((_, k) => (
-                    <Star
-                      key={k}
-                      className={`h-4 w-4 sm:h-5 sm:w-5 ${k < t.rating ? "fill-current" : "fill-transparent stroke-[oklch(0.35_0.04_235)] stroke-2"}`}
-                    />
-                  ))}
-                </div>
-
-                <blockquote className="text-display text-lg sm:text-xl leading-relaxed flex-1 text-[oklch(0.95_0.005_80)] relative z-10 mb-8 font-light">
-                  "{t.body}"
-                </blockquote>
-
-                <figcaption className="flex items-center gap-4 relative z-10 mt-auto">
-                  <div className="h-10 w-10 shrink-0 rounded-full bg-[oklch(0.25_0.04_235)] border border-[oklch(0.35_0.04_235)] flex items-center justify-center text-copper font-serif text-lg">
-                    {(t.title || "C")[0].toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="text-sm font-semibold text-[oklch(0.9_0.005_80)] tracking-wide">
-                      {t.title || "Customer"}
-                    </div>
-                    <div className="text-[10px] uppercase tracking-widest text-copper/80 mt-0.5 flex items-center gap-1.5">
-                      <ShieldCheck className="h-3 w-3" />
-                      Verified Buyer
-                    </div>
-                  </div>
-                </figcaption>
-              </figure>
+              <ReviewCard key={t.id} review={t} />
             ))}
           </div>
         )}

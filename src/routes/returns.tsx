@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PolicyPage } from "@/components/site/PolicyPage";
 
 export const Route = createFileRoute("/returns")({
- head: () => ({ meta: [{ title: "Returns & Refunds — Asif Brothers" }] }),
+ head: () => ({ meta: [{ title: "Returns & Refunds Asif Brothers" }] }),
  component: () => (
  <PolicyPage title="Returns & Refund Policy" subtitle="14-day window for unused units.">
  <h2>Eligibility</h2>

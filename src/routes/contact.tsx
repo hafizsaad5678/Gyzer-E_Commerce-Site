@@ -18,7 +18,7 @@ const schema = z.object({
 export const Route = createFileRoute("/contact")({
     head: () => ({
         meta: [
-            { title: "Contact Asif Brothers — Sales & Support" },
+            { title: "Contact Asif Brothers Sales & Support" },
             {
                 name: "description",
                 content:
@@ -48,7 +48,7 @@ function Contact() {
         const { error } = await supabase.from("contact_messages").insert(parsed.data);
         setLoading(false);
         if (error) return toast.error("Could not send message");
-        toast.success("Message sent — we'll reply within one business day.");
+        toast.success("Message sent we'll reply within one business day.");
         (e.target as HTMLFormElement).reset();
     }
 

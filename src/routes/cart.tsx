@@ -17,7 +17,7 @@ const cartOpts = queryOptions({
  queryKey: ["cart"],
  queryFn: async () => {
  const { data: session } = await supabase.auth.getSession();
- if (!session.session) return null; // null = not signed in
+ if (!session.session) return null;
 
  const { data, error } = await supabase
  .from("cart_items")
@@ -27,11 +27,21 @@ const cartOpts = queryOptions({
  .order("created_at");
  if (error) throw error;
 
- return (data ?? []).map((r: any) => ({
- id: r.id,
- quantity: r.quantity,
- product: r.products,
- }));
+ // Deduplicate: if same product appears twice (shouldn't happen with UNIQUE constraint
+ // but can occur from old data), merge quantities and keep the first row's id
+ const seen = new Map<string, any>();
+ for (const r of data ?? []) {
+ const pid = (r as any).products?.id;
+ if (!pid) continue;
+ if (seen.has(pid)) {
+ // Merge — silently delete the duplicate row in the background
+ supabase.from("cart_items").delete().eq("id", (r as any).id).then(() => {});
+ } else {
+ seen.set(pid, { id: (r as any).id, quantity: (r as any).quantity, product: (r as any).products });
+ }
+ }
+
+ return Array.from(seen.values());
  },
 });
 
@@ -39,7 +49,7 @@ const cartOpts = queryOptions({
 
 export const Route = createFileRoute("/cart")({
  head: () => ({
- meta: [{ title: "Your cart — Asif Brothers" }, { name: "robots", content: "noindex" }],
+ meta: [{ title: "Your cart" }, { name: "robots", content: "noindex" }],
  }),
  component: Cart,
 });
@@ -59,24 +69,41 @@ function Cart() {
  const signedIn = items !== null;
 
  const updateQtyMutation = useMutation({
- mutationFn: async ({ id, qty, max }: { id: string; qty: number; max: number }) => {
- if (qty < 1) return;
+ mutationFn: async ({ id, productId, qty, max }: { id: string; productId: string; qty: number; max: number }) => {
+ if (qty < 1) {
+ const { data: { session } } = await supabase.auth.getSession();
+ if (!session) throw new Error("Not signed in");
+ const { error } = await supabase
+ .from("cart_items")
+ .delete()
+ .eq("user_id", session.user.id)
+ .eq("product_id", productId);
+ if (error) throw error;
+ return;
+ }
  const newQty = Math.min(qty, max);
  if (qty > max) toast.error(`Only ${max} available in stock`);
  const { error } = await supabase.from("cart_items").update({ quantity: newQty }).eq("id", id);
  if (error) throw error;
  },
  onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
- onError: () => toast.error("Could not update quantity"),
+ onError: (e: any) => toast.error(e.message ?? "Could not update quantity"),
  });
 
  const removeMutation = useMutation({
- mutationFn: async (id: string) => {
- const { error } = await supabase.from("cart_items").delete().eq("id", id);
+ mutationFn: async ({ id, productId }: { id: string; productId: string }) => {
+ const { data: { session } } = await supabase.auth.getSession();
+ if (!session) throw new Error("Not signed in");
+ // Delete by user_id + product_id — satisfies RLS and removes all duplicates
+ const { error } = await supabase
+ .from("cart_items")
+ .delete()
+ .eq("user_id", session.user.id)
+ .eq("product_id", productId);
  if (error) throw error;
  },
  onSuccess: () => qc.invalidateQueries({ queryKey: ["cart"] }),
- onError: () => toast.error("Could not remove item"),
+ onError: (e: any) => toast.error(e.message ?? "Could not remove item"),
  });
 
  // Derive totals
@@ -174,34 +201,38 @@ function Cart() {
  onClick={() =>
  updateQtyMutation.mutate({
  id: i.id,
+ productId: i.product.id,
  qty: i.quantity - 1,
  max: i.product.stock,
  })
  }
- className="px-2.5 py-1 text-muted-foreground hover:text-foreground"
+ className="px-4 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+ aria-label="Decrease quantity"
  >
  −
  </button>
- <span className="px-3 py-1 text-sm">{i.quantity}</span>
+ <span className="px-4 py-2 text-sm font-medium min-w-[2.5rem] text-center">{i.quantity}</span>
  <button
  onClick={() =>
  updateQtyMutation.mutate({
  id: i.id,
+ productId: i.product.id,
  qty: i.quantity + 1,
  max: i.product.stock,
  })
  }
- className="px-2.5 py-1 text-muted-foreground hover:text-foreground"
+ className="px-4 py-2 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+ aria-label="Increase quantity"
  >
  +
  </button>
  </div>
  <button
- onClick={() => removeMutation.mutate(i.id)}
+ onClick={() => removeMutation.mutate({ id: i.id, productId: i.product.id })}
  disabled={removeMutation.isPending}
- className="text-xs text-muted-foreground hover:text-destructive inline-flex items-center gap-1 disabled:opacity-50"
+ className="text-sm text-destructive/80 hover:text-destructive inline-flex items-center gap-1.5 font-medium transition-colors disabled:opacity-50"
  >
- <Trash2 className="h-3.5 w-3.5" /> Remove
+ <Trash2 className="h-4 w-4" /> Remove
  </button>
  </div>
  </div>

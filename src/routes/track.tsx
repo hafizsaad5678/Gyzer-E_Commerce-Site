@@ -13,7 +13,7 @@ const trackSearchSchema = z.object({
 
 export const Route = createFileRoute("/track")({
  validateSearch: trackSearchSchema,
- head: () => ({ meta: [{ title: "Track Your Order — Asif Brothers" }] }),
+ head: () => ({ meta: [{ title: "Track Your Order Asif Brothers" }] }),
  component: TrackOrder,
 });
 

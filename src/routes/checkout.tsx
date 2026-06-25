@@ -13,12 +13,14 @@ import { AddressForm, type AddressFields } from "@/components/checkout/AddressFo
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { calcShipping, resolveZone, shippingZoneLabel } from "@/lib/shipping";
+import { incrementCouponUsage } from "@/lib/coupon";
+import { inputCls } from "@/lib/styles";
 import { ArrowLeft, ShieldCheck, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/checkout")({
  head: () => ({
- meta: [{ title: "Checkout — Asif Brothers" }, { name: "robots", content: "noindex" }],
+ meta: [{ title: "Checkout Asif Brothers" }, { name: "robots", content: "noindex" }],
  }),
  component: Checkout,
 });
@@ -33,8 +35,6 @@ const EMPTY_ADDRESS: AddressFields = {
  postal_code: "",
  country: "Pakistan",
 };
-
-const inputCls = "w-full rounded-md border border-input bg-background px-3 py-2 text-sm";
 
 function Checkout() {
  const navigate = useNavigate();
@@ -140,7 +140,11 @@ function Checkout() {
 
  setPlacing(true);
  const { data: u } = await supabase.auth.getUser();
- const user_id = u.user!.id;
+ const user_id = u.user?.id;
+ if (!user_id) {
+ setPlacing(false);
+ return toast.error("Session expired. Please sign in again.");
+ }
 
  // Save new address for future orders
  if (useNew) {
@@ -194,27 +198,42 @@ function Checkout() {
  return toast.error(oiErr.message);
  }
 
-  // Decrement stock and send low-stock alerts if needed
+  // Atomic stock decrement via DB function (prevents race conditions)
+  const stockErrors: string[] = [];
   await Promise.all(
     items.map(async (i: any) => {
-      const currentStock = i.products.stock ?? 0;
-      const newStock = Math.max(0, currentStock - i.quantity);
-      // Direct update — more reliable than RPC
-      await supabase
-        .from("products")
-        .update({ stock: newStock })
-        .eq("id", i.products.id);
-      if (currentStock >= 5 && newStock < 5) {
+      const { data: newStock, error: stockErr } = await supabase
+        .rpc("decrement_stock", {
+          p_product_id: i.products.id,
+          p_quantity: i.quantity,
+        });
+      if (stockErr) {
+        stockErrors.push(`${i.products.name}: insufficient stock`);
+        return;
+      }
+      // Low-stock alert when stock drops below threshold
+      if (newStock != null && newStock < 5) {
         await supabase.from("contact_messages").insert({
           name: "System Alert",
-          email: "system@asifbrothers.com",
+          email: "noreply@system.internal",
           subject: `Low Stock Alert: ${i.products.name}`,
-          message: `The product "${i.products.name}" has just dropped to ${newStock} items in stock after a recent purchase. Please restock soon!`,
+          message: `"${i.products.name}" dropped to ${newStock} units after order ${order.order_number}.`,
           is_read: false,
-        });
+          message_type: "system_alert",
+        } as any);
       }
     }),
   );
+
+  if (stockErrors.length > 0) {
+    // Order was placed but stock update failed — log and continue
+    console.warn("Stock decrement issues:", stockErrors);
+  }
+
+  // Increment coupon usage counter
+  if (discount > 0 && couponCode) {
+    await incrementCouponUsage(couponCode);
+  }
 
  // Clear cart
  await supabase.from("cart_items").delete().eq("user_id", user_id);

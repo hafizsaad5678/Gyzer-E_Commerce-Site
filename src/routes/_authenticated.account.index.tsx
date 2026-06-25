@@ -4,12 +4,13 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-const profileOpts = queryOptions({
+ const profileOpts = queryOptions({
  queryKey: ["account-profile"],
  queryFn: async () => {
  const { data: u } = await supabase.auth.getUser();
- const email = u.user?.email ?? "";
- const { data } = await supabase.from("profiles").select("*").eq("id", u.user!.id).maybeSingle();
+ if (!u.user) return { email: "", profile: { full_name: "", phone: "" } };
+ const email = u.user.email ?? "";
+ const { data } = await supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle();
  return { email, profile: data ?? { full_name: "", phone: "" } };
  },
 });
@@ -48,8 +49,9 @@ function Profile() {
  }
  setLoading(true);
  const { data: u } = await supabase.auth.getUser();
+ if (!u.user) { setLoading(false); return toast.error("Session expired. Please sign in again."); }
  const { error } = await supabase.from("profiles").upsert({
- id: u.user!.id,
+ id: u.user.id,
  full_name: fullName.trim(),
  phone: phone || null,
  });

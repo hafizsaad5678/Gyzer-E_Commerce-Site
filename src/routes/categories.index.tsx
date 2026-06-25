@@ -30,7 +30,7 @@ const opts = queryOptions({
 export const Route = createFileRoute("/categories/")({
  head: () => ({
  meta: [
- { title: "Categories — Asif Brothers" },
+ { title: "Categories Asif Brothers" },
  {
  name: "description",
  content: "Browse geysers by type: electric, gas, instant, and solar.",

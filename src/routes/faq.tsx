@@ -8,7 +8,7 @@ const faqs = [
  },
  {
  q: "Do you offer installation?",
- a: "Yes — installation is available in 14 cities. We quote based on plumbing complexity. Standard installation is typically Rs 5,000–15,000.",
+ a: "Yes installation is available in 14 cities. We quote based on plumbing complexity. Standard installation is typically Rs 5,000–15,000.",
  },
  {
  q: "What's covered under warranty?",
@@ -35,7 +35,7 @@ const faqs = [
 export const Route = createFileRoute("/faq")({
  head: () => ({
  meta: [
- { title: "FAQ — Asif Brothers" },
+ { title: "FAQ Asif Brothers" },
  {
  name: "description",
  content:

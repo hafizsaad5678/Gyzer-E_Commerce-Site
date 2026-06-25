@@ -15,9 +15,12 @@ const messagesOpts = queryOptions({
  .select("*")
  .order("created_at", { ascending: false });
  if (error) throw error;
- return data ?? [];
+ // Filter out system alerts client-side — works whether or not
+ // the message_type column exists yet (migration may not have run)
+ return (data ?? []).filter(
+ (m: any) => !m.message_type || m.message_type === "customer"
+ );
  },
- // Refetch every 60s so new messages appear without a page reload
  refetchInterval: 60_000,
 });
 

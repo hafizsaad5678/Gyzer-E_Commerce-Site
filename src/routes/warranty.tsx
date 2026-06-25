@@ -4,7 +4,7 @@ import { PolicyPage } from "@/components/site/PolicyPage";
 export const Route = createFileRoute("/warranty")({
  head: () => ({
  meta: [
- { title: "Warranty — Asif Brothers" },
+ { title: "Warranty Asif Brothers" },
  {
  name: "description",
  content: "Asif Brothers product warranty terms, coverage, and claim process.",

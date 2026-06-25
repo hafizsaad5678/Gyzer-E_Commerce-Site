@@ -17,7 +17,7 @@ import { useSiteSettings } from "@/lib/settings";
 
 export const Route = createFileRoute("/order-confirmation/$id")({
  head: () => ({
- meta: [{ title: "Order confirmed — Asif Brothers" }, { name: "robots", content: "noindex" }],
+ meta: [{ title: "Order confirmed Asif Brothers" }, { name: "robots", content: "noindex" }],
  }),
  component: OrderConfirmation,
 });
@@ -32,21 +32,26 @@ function OrderConfirmation() {
 
  useEffect(() => {
  (async () => {
+ // Security: verify session and that this order belongs to the current user
+ const { data: { session } } = await supabase.auth.getSession();
  const [{ data: o }, { data: oi }] = await Promise.all([
  supabase.from("orders").select("*").eq("id", id).maybeSingle(),
  supabase.from("order_items").select("*").eq("order_id", id),
  ]);
+ // Only show if signed in and order belongs to this user
+ if (o && session && o.user_id === session.user.id) {
  setOrder(o);
  setItems(oi ?? []);
- setLoading(false);
  if (
- o?.notes &&
+ o.notes &&
  (o.notes.includes("[Payment: BANK]") ||
  o.notes.includes("[Payment: EASYPAISA]") ||
  o.notes.includes("[Payment: JAZZCASH]"))
  ) {
  setShowPopup(true);
  }
+ }
+ setLoading(false);
  })();
  }, [id]);
 

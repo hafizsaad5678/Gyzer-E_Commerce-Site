@@ -66,8 +66,9 @@ function Addresses() {
   const addMutation = useMutation({
     mutationFn: async (formData: FormData) => {
       const { data: u } = await supabase.auth.getUser();
+      if (!u.user) throw new Error("Session expired. Please sign in again.");
       const { error } = await supabase.from("addresses").insert({
-        user_id: u.user!.id,
+        user_id: u.user.id,
         label: String(formData.get("label") ?? ""),
         full_name: String(formData.get("full_name") ?? ""),
         phone: String(formData.get("phone") ?? ""),

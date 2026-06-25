@@ -43,9 +43,13 @@ export function ReviewsSection({ productId, productSlug, reviews, signedIn }: Pr
  }
  setSubmitting(true);
  const { data: u } = await supabase.auth.getUser();
+ if (!u.user) {
+ setSubmitting(false);
+ return toast.error("Session expired. Please sign in again.");
+ }
  const { error } = await supabase.from("reviews").insert({
  product_id: productId,
- user_id: u.user!.id,
+ user_id: u.user.id,
  rating,
  title: title || null,
  body,
@@ -73,7 +77,7 @@ export function ReviewsSection({ productId, productSlug, reviews, signedIn }: Pr
 
  {/* Review list */}
  {reviews.length === 0 ? (
- <p className="text-sm text-muted-foreground">No reviews yet — be the first.</p>
+ <p className="text-sm text-muted-foreground">No reviews yet be the first.</p>
  ) : (
  <ul className="space-y-4">
  {reviews.slice(0, 6).map((r, i) => (

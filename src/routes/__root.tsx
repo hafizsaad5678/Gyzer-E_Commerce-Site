@@ -25,7 +25,7 @@ function NotFoundComponent() {
  <div className="mt-6">
  <Link
  to="/"
- className="inline-flex items-center justify-center rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors/90"
+ className="inline-flex items-center justify-center rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2 text-sm font-medium"
  >
  Go home
  </Link>
@@ -57,7 +57,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
  router.invalidate();
  reset();
  }}
- className="inline-flex items-center justify-center rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors/90"
+ className="inline-flex items-center justify-center rounded-md bg-secondary hover:bg-copper text-foreground hover:text-copper-foreground transition-colors px-4 py-2 text-sm font-medium"
  >
  Try again
  </button>
@@ -78,7 +78,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
  meta: [
  { charSet: "utf-8" },
  { name: "viewport", content: "width=device-width, initial-scale=1" },
- { title: "Asif Brothers — Premium Geysers for Pakistan" },
+ { title: "Asif Brothers Premium Geysers for Pakistan" },
  {
  name: "description",
  content:

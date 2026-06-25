@@ -4,6 +4,10 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatPKR } from "@/lib/format";
 import { toast } from "sonner";
+import {
+  OrderStatusBadges,
+  computeStatusCounts,
+} from "@/components/admin/OrderStatusBadges";
 
 const statuses = [
   "pending",
@@ -17,19 +21,22 @@ const statuses = [
 ] as const;
 type OrderStatus = (typeof statuses)[number];
 
-// ─── Query ────────────────────────────────────────────────────────────────────
+// ─── Query — always fetch ALL orders so we can compute counts ─────────────────
 
-const ordersOpts = (filter: string) =>
- queryOptions({
- queryKey: ["admin-orders", filter],
- queryFn: async () => {
- let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
- if (filter) q = q.eq("status", filter as any);
- const { data, error } = await q;
- if (error) throw error;
- return data ?? [];
- },
- });
+const allOrdersOpts = queryOptions({
+  queryKey: ["admin-orders-all"],
+  queryFn: async () => {
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error) throw error;
+    return data ?? [];
+  },
+});
+
+// Keep backward-compat alias used internally
+const ordersOpts = (_filter: string) => allOrdersOpts;
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -43,7 +50,13 @@ function AdminOrders() {
  const qc = useQueryClient();
  const [filter, setFilter] = useState<string>("");
 
- const { data: orders = [], isLoading } = useQuery(ordersOpts(filter));
+ const { data: allOrders = [], isLoading } = useQuery(allOrdersOpts);
+
+ // Client-side filter
+ const orders = filter ? allOrders.filter((o) => o.status === filter) : allOrders;
+
+ // Compute status counts
+ const statusCounts = computeStatusCounts(allOrders);
 
  const statusMutation = useMutation({
  mutationFn: async ({ order, newStatus }: { order: any; newStatus: string }) => {
@@ -75,7 +88,7 @@ function AdminOrders() {
  },
  onSuccess: ({ orderNumber, newStatus }) => {
  toast.success(`Order ${orderNumber} → ${newStatus}`);
- qc.invalidateQueries({ queryKey: ["admin-orders"] });
+ qc.invalidateQueries({ queryKey: ["admin-orders-all"] });
  },
  onError: () => toast.error("Failed to update status"),
  });
@@ -98,19 +111,23 @@ function AdminOrders() {
  },
  onSuccess: () => {
  toast.success("Tracking saved");
- qc.invalidateQueries({ queryKey: ["admin-orders"] });
+ qc.invalidateQueries({ queryKey: ["admin-orders-all"] });
  },
  onError: () => toast.error("Failed to update tracking info"),
  });
 
  return (
  <div className="space-y-6">
+ {/* Header */}
  <div className="flex justify-between items-end gap-4 flex-wrap">
  <div>
  <div className="text-xs uppercase tracking-wider text-copper font-semibold mb-2">
  Sales
  </div>
  <h1 className="text-display text-4xl">Orders</h1>
+ <p className="text-sm text-muted-foreground mt-1">
+ {allOrders.length} total orders
+ </p>
  </div>
  <select
  value={filter}
@@ -125,6 +142,13 @@ function AdminOrders() {
  ))}
  </select>
  </div>
+
+ {/* Status count badges */}
+ <OrderStatusBadges
+ counts={statusCounts}
+ activeFilter={filter}
+ onFilter={setFilter}
+ />
 
  <div className="surface-card overflow-hidden">
  <div className="overflow-x-auto">
@@ -233,7 +257,7 @@ function AdminOrders() {
  </div>
 
  <p className="text-xs text-muted-foreground">
- Status change automatically sends an email notification to the customer via Resend.
+ Status change automatically sends an email notification to the customer.
  </p>
  </div>
  );

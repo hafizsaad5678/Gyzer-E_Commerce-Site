@@ -15,7 +15,7 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/auth")({
  validateSearch: searchSchema,
  head: () => ({
- meta: [{ title: "Sign in — Asif Brothers" }, { name: "robots", content: "noindex" }],
+ meta: [{ title: "Sign in Asif Brothers" }, { name: "robots", content: "noindex" }],
  }),
  component: AuthPage,
 });
@@ -31,7 +31,7 @@ function AuthPage() {
  supabase.auth.getSession().then(({ data }) => {
  if (data.session) navigate({ to: search.redirect ?? "/account" });
  });
- }, []);
+ }, [navigate, search.redirect]);
 
  async function handle(e: React.FormEvent<HTMLFormElement>) {
  e.preventDefault();
@@ -60,7 +60,7 @@ function AuthPage() {
  toast.success("Account created! Please check your email to verify before signing in.");
  setMode("signin");
  } else {
- toast.success("Account created — you're signed in!");
+ toast.success("Account created you're signed in!");
  navigate({ to: search.redirect ?? "/account" });
  }
  } else {

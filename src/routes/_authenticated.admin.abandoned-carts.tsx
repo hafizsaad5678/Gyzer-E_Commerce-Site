@@ -140,7 +140,7 @@ function AbandonedCarts() {
           item_count: cart.item_count,
         },
       });
-      if (error) throw new Error(error.message ?? "Edge function not reachable — deploy it first");
+      if (error) throw new Error(error.message ?? "Edge function not reachable deploy it first");
       if (data?.errors?.length) {
         throw new Error(`Email failed: ${data.errors[0]}`);
       }
@@ -235,7 +235,7 @@ function AbandonedCarts() {
                   <div className="text-xs text-muted-foreground truncate">
                     {cart.email}
                     {!hasEmail && (
-                      <span className="ml-1.5 text-amber-500">(no email — no orders placed yet)</span>
+                      <span className="ml-1.5 text-amber-500">(no email no orders placed yet)</span>
                     )}
                   </div>
                   <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
