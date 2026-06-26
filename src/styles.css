@@ -80,8 +80,8 @@
   --primary: #0f172a;
   --primary-foreground: #f8fafc;
 
-  /* Warm copper — accent / CTAs */
-  --copper: #b87333;
+  /* Deep rust copper — accent / CTAs (from hero image) */
+  --copper: #8B3A1A;
   --copper-foreground: #ffffff;
 
   /* Cool steel — surfaces */
@@ -108,22 +108,22 @@
   --ring: #0f172a;
 
   --chart-1: #0f172a;
-  --chart-2: #b87333;
+  --chart-2: #8B3A1A;
   --chart-3: #10b981;
   --chart-4: #3b82f6;
   --chart-5: #f59e0b;
 
   --sidebar: #0f172a;
   --sidebar-foreground: #f8fafc;
-  --sidebar-primary: #b87333;
+  --sidebar-primary: #8B3A1A;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #f8fafc;
   --sidebar-border: #1e293b;
-  --sidebar-ring: #b87333;
+  --sidebar-ring: #8B3A1A;
 
   /* Gradients & shadows */
-  --gradient-thermal: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #b87333 100%);
+  --gradient-thermal: linear-gradient(135deg, #0f172a 0%, #1e293b 45%, #8B3A1A 100%);
   --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
   --shadow-soft: 0 1px 2px rgba(2, 8, 23, 0.06), 0 8px 24px rgba(2, 8, 23, 0.06);
   --shadow-elevated: 0 4px 12px rgba(2, 8, 23, 0.08), 0 24px 48px rgba(2, 8, 23, 0.12);
@@ -138,8 +138,8 @@
   --popover-foreground: #f8fafc;
   --primary: #f8fafc;
   --primary-foreground: #0f172a;
-  --copper: #b87333;
-  --copper-foreground: #020817;
+  --copper: #8B3A1A;
+  --copper-foreground: #ffffff;
   --steel: #0f172a;
   --steel-foreground: #f8fafc;
   --secondary: #0f172a;
@@ -154,7 +154,7 @@
   --success-foreground: #020817;
   --border: #1e293b;
   --input: #1e293b;
-  --ring: #b87333;
+  --ring: #8B3A1A;
 }
 
 @layer base {
